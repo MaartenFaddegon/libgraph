@@ -9,7 +9,6 @@ module Data.Graph.Libgraph.DepthFirst
 import Data.Graph.Libgraph.Core
 import Data.Graph.Libgraph.Dot
 import Control.Monad.State
-import Data.Maybe
 import Data.List
 
 data Dfs vertex = Dfs { num       :: [(vertex,Int)]
@@ -72,7 +71,7 @@ visit v = do see v
 pushSuccs :: Eq vertex => vertex -> State (DfsState vertex) ()
 pushSuccs v = do g  <- gets graph'
                  vs <- gets seen
-                 modify $ \s -> s { stack = Succs v (succs g v \\ vs) : (stack s) }
+                 modify $ \s -> s { stack = Succs v (succs g v) : (stack s) }
 
 pop :: Eq vertex => State (DfsState vertex) (Maybe vertex)
 pop = do s <- gets stack
@@ -80,8 +79,12 @@ pop = do s <- gets stack
                    (Succs v []:ss)     -> do modify $ \s -> s { stack = ss }
                                              visitedAllChildren v
                                              pop
-                   (Succs v (c:cs):ss) -> do modify $ \s -> s { stack = Succs v cs : ss }
-                                             return $ Just c
+                   (Succs v (c:cs):ss) 
+                     -> do visited <- gets seen
+                           modify $ \s -> s { stack = Succs v cs : ss }
+                           if c `elem` visited 
+                             then pop 
+                             else return $ Just c
 
 visitedAllChildren :: Eq vertex => vertex -> State (DfsState vertex) ()
 visitedAllChildren v = modify $ \s -> s { lastVisit' = (v, time s) : lastVisit' s }

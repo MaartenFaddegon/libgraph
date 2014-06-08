@@ -10,3 +10,5 @@ graph2 = Graph a [a,b,c,d] [a-->b,b-->d,a-->c,c-->d,a-->d]
 
 dfsTest g = do writeFile "/tmp/test.dot" (show . dfs $ g)
                system $ "cat /tmp/test.dot | dot -Tpng | display -"
+
+main = dfsTest graph2

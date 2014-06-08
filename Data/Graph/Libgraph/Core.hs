@@ -1,6 +1,7 @@
 module Data.Graph.Libgraph.Core where
 import Data.Maybe
 import Data.List
+import Debug.Trace(traceStack)
 
 --------------------------------------------------------------------------------
 -- External representation of graphs
@@ -35,7 +36,9 @@ isPred g w v = w `elem` preds g v
 -- Some other helper functions
 
 lookup' :: Eq a => a -> [(a, b)] -> b
-lookup' x ys = fromJust (lookup x ys)
+lookup' x ys = case lookup x ys of
+  Nothing -> traceStack "Lookup failed" undefined
+  Just y  -> y
 
 fstElem :: Eq a => a -> [(a, b)] -> Bool
 fstElem x = isJust . (lookup x)
