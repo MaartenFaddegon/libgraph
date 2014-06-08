@@ -14,10 +14,13 @@ data Graph vertex = Graph { root :: vertex
                           }
 
 --------------------------------------------------------------------------------
--- Some helper functions
+-- Successors and predecessors
 
-children :: Eq vertex => Graph vertex -> vertex -> [vertex]
-children g v = map target $ filter ((== v) . source) (arcs g)
+succs :: Eq vertex => Graph vertex -> vertex -> [vertex]
+succs g v = map target $ filter ((== v) . source) (arcs g)
+
+preds :: Eq vertex => Graph vertex -> vertex -> [vertex]
+preds g v = map source $ filter ((== v) . target) (arcs g)
 
 --------------------------------------------------------------------------------
 -- Depth first search
@@ -29,8 +32,6 @@ dfs :: Eq vertex => Graph vertex -> [vertex] -> [vertex] -> [vertex]
 dfs g [] vs        = vs
 dfs g (v:stack) vs = if v `elem` vs
                      then dfs g stack vs
-                     else dfs g (children g v ++ stack) (v:vs)
+                     else dfs g (succs g v ++ stack) (v:vs)
 
 --------------------------------------------------------------------------------
--- 
-
