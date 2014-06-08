@@ -1,5 +1,5 @@
 module Data.Graph.Libgraph.DepthFirst
-( Dfs
+( Dfs(num,lastVisit)
 , dfs
 ) where
 import Data.Graph.Libgraph.Core
@@ -7,10 +7,14 @@ import Control.Monad.State
 import Data.Maybe
 import Data.List
 
-data Dfs vertex = Dfs { num :: [(vertex,Int)], lastVisit :: [(vertex,Int)] }
+data Dfs vertex = Dfs { num       :: [(vertex,Int)]
+                      , lastVisit :: [(vertex,Int)] 
+                      }
+
+data Succs vertex = Succs vertex [vertex]
 
 data DfsState vertex = DfsState { graph      :: Graph vertex
-                                , stack      :: [vertex]
+                                , stack      :: [Succs vertex]
                                 , seen       :: [vertex]
                                 , time       :: Int
                                 , num'       :: [(vertex,Int)]
@@ -20,7 +24,7 @@ data DfsState vertex = DfsState { graph      :: Graph vertex
 dfs :: Eq vertex => Graph vertex -> Dfs vertex
 dfs g = Dfs (num' finalState) (lastVisit' finalState)
   where state0 = DfsState { graph      = g
-                          , stack      = [root g]
+                          , stack      = []
                           , seen       = []
                           , time       = 0
                           , num'       = []
@@ -39,13 +43,19 @@ visit v = do see v
 pushSuccs :: Eq vertex => vertex -> State (DfsState vertex) ()
 pushSuccs v = do g  <- gets graph
                  vs <- gets seen
-                 modify $ \s -> s { stack = (succs g v \\ vs) ++ (stack s) }
+                 modify $ \s -> s { stack = Succs v (succs g v \\ vs) : (stack s) }
 
 pop :: Eq vertex => State (DfsState vertex) (Maybe vertex)
 pop = do s <- gets stack
-         case s of []     -> return Nothing
-                   (x:xs) -> do modify $ \s -> s { stack = xs }
-                                return $ Just x
+         case s of []                  -> return Nothing
+                   (Succs v []:ss)     -> do modify $ \s -> s { stack = ss }
+                                             visitedAllChildren v
+                                             pop
+                   (Succs v (c:cs):ss) -> do modify $ \s -> s { stack = Succs v cs : ss }
+                                             return $ Just c
+
+visitedAllChildren :: Eq vertex => vertex -> State (DfsState vertex) ()
+visitedAllChildren v = modify $ \s -> s { lastVisit' = (v, time s) : lastVisit' s }
 
 see :: vertex -> State (DfsState vertex) ()
 see v = modify $ \s -> s { seen = v           : seen s
