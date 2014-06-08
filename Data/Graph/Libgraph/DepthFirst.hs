@@ -22,6 +22,9 @@ isAncestor d w v = (n_w <= n_v && n_v <= l_w)
 preorder :: Dfs vertex -> [vertex]
 preorder d = map fst (num d)
 
+postorder :: Dfs vertex -> [vertex]
+postorder d = map fst (lastVisit d)
+
 data Succs vertex = Succs vertex [vertex]
 
 data DfsState vertex = DfsState { graph      :: Graph vertex
