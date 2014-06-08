@@ -1,6 +1,8 @@
 module Data.Graph.Libgraph.DepthFirst
 ( Dfs(num,lastVisit)
 , dfs
+, isAncestor
+, preorder
 ) where
 import Data.Graph.Libgraph.Core
 import Control.Monad.State
@@ -10,6 +12,15 @@ import Data.List
 data Dfs vertex = Dfs { num       :: [(vertex,Int)]
                       , lastVisit :: [(vertex,Int)] 
                       }
+
+isAncestor :: Eq vertex => Dfs vertex -> vertex -> vertex -> Bool
+isAncestor d w v = (n_w <= n_v && n_v <= l_w)
+  where n_v    = lookup' v (num d)
+        n_w    = lookup' w (num d)
+        l_w    = lookup' w (lastVisit d)
+
+preorder :: Dfs vertex -> [vertex]
+preorder d = map fst (num d)
 
 data Succs vertex = Succs vertex [vertex]
 
