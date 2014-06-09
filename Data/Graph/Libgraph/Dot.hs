@@ -6,7 +6,9 @@ import Data.Graph.Libgraph.Core
 showWith :: Eq vertex => Graph vertex -> (vertex->String) -> (Arc vertex->String) -> String
 showWith g vLabel aLabel
   = "diGraph G {\n"
+  ++ "root [style=invis label=\"\"]\n"
   ++ foldl (\s v -> (showVertex vLabel v) ++ s) "" vs
+  ++ "root -> " ++ vName (lookup' (root g) vs) ++ "\n"
   ++ foldl (\s a -> (showArc vs aLabel a) ++ s) "" (arcs g)
   ++ "}\n"
   where vs = zip (vertices g) [0..]

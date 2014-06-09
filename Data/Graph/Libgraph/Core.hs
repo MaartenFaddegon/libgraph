@@ -8,7 +8,7 @@ import Debug.Trace(traceStack)
 
 data Arc vertex   = Arc   { source :: vertex
                           , target :: vertex
-                          }
+                          } deriving Eq
 data Graph vertex = Graph { root :: vertex
                           , vertices :: [vertex]
                           , arcs :: [Arc vertex]
