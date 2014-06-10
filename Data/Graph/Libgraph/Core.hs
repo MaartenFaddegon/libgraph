@@ -42,8 +42,6 @@ lookup' x ys = case lookup x ys of
 
 fstElem :: Eq a => a -> [(a, b)] -> Bool
 fstElem x = isJust . (lookup x)
- 
--- work :: [a] -> (state -> a -> (state, [a]) -> state
--- work [] _ state     = state
--- work (x:xs) f state = let (state',xs') = f state x
---                       in work (xs' ++ xs) f state
+
+update :: Eq a => (a,b) -> [(a,b)] -> [(a,b)]
+update (x,y) xys = map (\(x',y') -> if x == x' then (x,y) else (x',y')) xys

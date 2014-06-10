@@ -1,10 +1,10 @@
 module Data.Graph.Libgraph.DepthFirst
 ( Dfs(num,lastVisit)
-, dfs
+, getDfs
+, getEdgetype
+, getPreorder
+, getPostorder
 , isAncestor
-, edgetype
-, preorder
-, postorder
 ) where
 import Data.Graph.Libgraph.Core
 import Data.Graph.Libgraph.Dot
@@ -25,19 +25,19 @@ isAncestor d v w = (n_w <= n_v && n_v <= l_w)
         n_w    = lookup' w (num d)
         l_w    = lookup' w (lastVisit d)
 
-edgetype :: Eq vertex => Dfs vertex -> Arc vertex -> EdgeType
-edgetype d a@(Arc v w)
+getEdgetype :: Eq vertex => Dfs vertex -> Arc vertex -> EdgeType
+getEdgetype d a@(Arc v w)
   | a `elem` (spanning d) = TreeEdge
   | w `isAnc` v           = FwdEdge
   | v `isAnc` w           = BackEdge
   | otherwise             = CrossEdge
   where isAnc = isAncestor d
 
-preorder :: Dfs vertex -> [vertex]
-preorder d = map fst (num d)
+getPreorder :: Dfs vertex -> [vertex]
+getPreorder d = map fst (num d)
 
-postorder :: Dfs vertex -> [vertex]
-postorder d = map fst (lastVisit d)
+getPostorder :: Dfs vertex -> [vertex]
+getPostorder d = map fst (lastVisit d)
 
 data Succs vertex = Succs vertex [vertex]
 
@@ -50,8 +50,8 @@ data DfsState vertex = DfsState { graph'     :: Graph vertex
                                 , lastVisit' :: [(vertex,Int)]
                                 }
 
-dfs :: (Show vertex, Eq vertex) => Graph vertex -> Dfs vertex
-dfs g = Dfs (num' finalState) (lastVisit' finalState) (spanning' finalState) g
+getDfs :: Eq vertex => Graph vertex -> Dfs vertex
+getDfs g = Dfs (num' finalState) (lastVisit' finalState) (spanning' finalState) g
   where state0 = DfsState { graph'     = g
                           , spanning'  = []
                           , stack      = []
@@ -62,7 +62,7 @@ dfs g = Dfs (num' finalState) (lastVisit' finalState) (spanning' finalState) g
                           }
         finalState = execState (visit $ root g) state0
 
-visit :: (Show vertex, Eq vertex) => vertex -> State (DfsState vertex) ()
+visit :: Eq vertex => vertex -> State (DfsState vertex) ()
 visit v = do see v
              pushSuccs v
              s <- gets stack
@@ -71,7 +71,7 @@ visit v = do see v
                                           visit w
                          Nothing    -> return ()
 
-addToSpanning :: Show vertex => vertex -> vertex -> State (DfsState vertex) ()
+addToSpanning :: vertex -> vertex -> State (DfsState vertex) ()
 addToSpanning v w 
   = modify $ \s -> s { spanning' = v --> w : (spanning' s) }
 
@@ -105,7 +105,7 @@ see v = modify $ \s -> s { seen = v : seen s
 instance (Eq vertex,Show vertex) => Show (Dfs vertex) where
   show d = showWith (graph d) showVertex showArc
     where showVertex v = show v ++ show (lookup' v (num d), lookup' v (lastVisit d))
-          showArc    = show . (edgetype d)
+          showArc    = show . (getEdgetype d)
 
 instance Show EdgeType where
   show TreeEdge  = "tree edge"

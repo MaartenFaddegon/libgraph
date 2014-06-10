@@ -18,7 +18,7 @@ test sh g = do writeFile "/tmp/test.dot" (sh g)
                return ()
 
 dfsTest :: G -> IO ()
-dfsTest = test (show . dfs)
+dfsTest = test (show . getDfs)
 
 domTest :: G -> IO ()
 domTest = test (show . domsets)
