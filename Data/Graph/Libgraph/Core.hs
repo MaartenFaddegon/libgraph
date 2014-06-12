@@ -32,6 +32,19 @@ isSucc g w v = w `elem` succs g v
 isPred :: Eq vertex => Graph vertex -> vertex -> vertex -> Bool
 isPred g w v = w `elem` preds g v
 
+
+--------------------------------------------------------------------------------
+-- Graph conversion
+
+mapGraph :: (a -> b) -> Graph a -> Graph b
+mapGraph f (Graph r vs as) = Graph (f r) (map f vs) (mapArcs f as)
+
+mapArcs :: (a -> b) -> [Arc a] -> [Arc b]
+mapArcs = map . mapArc
+
+mapArc :: (a -> b) -> Arc a -> Arc b
+mapArc f (Arc src tgt) = Arc (f src) (f tgt)
+
 --------------------------------------------------------------------------------
 -- Some other helper functions
 
@@ -45,3 +58,9 @@ fstElem x = isJust . (lookup x)
 
 update :: Eq a => (a,b) -> [(a,b)] -> [(a,b)]
 update (x,y) xys = map (\(x',y') -> if x == x' then (x,y) else (x',y')) xys
+
+sndList :: [(a,b)] -> [b]
+sndList = snd . unzip
+
+fstList :: [(a,b)] -> [a]
+fstList = fst . unzip

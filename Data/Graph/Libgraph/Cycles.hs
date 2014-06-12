@@ -9,63 +9,75 @@ import Data.Graph.Libgraph.Core
 import Data.Graph.Libgraph.DepthFirst
 import Data.Graph.Libgraph.UnionFind(UF)
 import qualified  Data.Graph.Libgraph.UnionFind as UF
+import Data.Array
 
 type S vertex = State (CycleNest vertex) ()
 
 data CycleType        = NonHeader | Self | Reducible | Irreducible
 data CycleNest vertex = CycleNest
-  { graph        :: Graph vertex
-  , dfs          :: Dfs vertex
-  , preorder     :: [vertex]
-  , backPreds    :: [(vertex, [vertex])]
-  , nonBackPreds :: [(vertex, [vertex])]
-  , cycleType    :: [(vertex, CycleType)]
-  , header       :: [(vertex, vertex)]
-  , body         :: [vertex]              -- P in Havlak's algorithm
-  , worklist     :: [vertex]
+  { graph        :: Graph Int
+  , getVertex    :: Int -> vertex
+  , n            :: Int
+  , dfs          :: Dfs Int
+  , backPreds    :: [[Int]]
+  , nonBackPreds :: [[Int]]
+  , cycleType    :: Array Int CycleType
+  , header       :: [Int]
+  , body         :: [Int]              -- P in Havlak's algorithm
+  , worklist     :: [Int]
   , uf           :: UF
   }
 
--- Step a and b of Havlak
-state0 :: Eq vertex => Graph vertex -> CycleNest vertex
-state0 g = state0'
-  where ps      = map (\w -> partition (isAncestor (dfs state0') w) (preds g w)) (preorder state0')
-        state0' = CycleNest
-          { graph        = g
-          , dfs          = getDfs g
-          , preorder     = getPreorder (dfs state0')
-          , backPreds    = zip (preorder state0') $ map fst ps
-          , nonBackPreds = zip (preorder state0') $ map snd ps
-          , cycleType    = zip (preorder state0') $ cycle [NonHeader]
-          , header       = zip (preorder state0') $ cycle [root g]
+-- Part a and b of Havlak's algorithm
+state0 :: Ord vertex => Graph vertex -> CycleNest vertex
+state0 g = s0
+  where ps   = map (\w -> partition (isAncestor (dfs s0) w) (preds (graph s0) w)) [1..n s0]
+        dfsg = dfsGraph g
+        s0   = CycleNest
+          { graph        = fst dfsg
+          , getVertex    = snd dfsg
+          , n            = length (vertices g)
+          , dfs          = getDfs (graph s0)
+          , backPreds    = map fst ps
+          , nonBackPreds = map snd ps
+          , cycleType    = listArray (1,n s0) $ cycle [NonHeader]
+          , header       = take (n s0) $ cycle [root . graph $ s0]
           , body         = []
           , worklist     = []
-          , uf           = UF.fromList[1..(length . preorder $ state0')]
+          , uf           = UF.fromList [1..n s0]
           }
 
-getCycleNest :: Eq vertex => Graph vertex -> CycleNest vertex
-getCycleNest g = execState (analyse . reverse . preorder $ s0) s0
+getCycleNest :: Ord vertex => Graph vertex -> CycleNest vertex
+getCycleNest g = execState (analyse [n s0..1]) s0
   where s0 = state0 g
 
--- Step c of Havlak
-analyse :: Eq vertex => [vertex] -> S vertex
-analyse ws = mapM_ analyseBackPreds ws
+-- Part c of Havlak's algorithm
+analyse :: Eq vertex => [Int] -> S vertex
+analyse ws = mapM_ analyse' ws
   where analyse' w = do modify $ \s -> s { body = [] }
                         analyseBackPreds w
                         modify $ \s -> s { worklist = body s }
 
-labelReducible :: Eq vertex => vertex -> S vertex
+labelReducible :: Eq vertex => Int -> S vertex
 labelReducible w = do p <- gets $ body
                       case p of [] -> modifyCycleType (w,Reducible)
                                 _  -> return ()
 
 
--- Step d of Havlak
-analyseBackPreds :: Eq vertex => vertex -> S vertex
+-- Part d of Havlak's algorithm
+analyseBackPreds :: Eq vertex => Int -> S vertex
 analyseBackPreds w = do bps <- gets backPreds
-                        mapM_ f (lookup' w bps)
+                        mapM_ f (bps !! w)
   where f v = if v /= w then return () -- MF TODO: add FIND(v) to body
                         else modifyCycleType (w,Self)
 
-modifyCycleType :: Eq vertex => (vertex,CycleType) -> S vertex
-modifyCycleType vtyp = modify $ \s -> s { cycleType = update vtyp (cycleType s) }
+modifyCycleType :: (Int,CycleType) -> S vertex
+modifyCycleType vtyp = modify $ \s -> s { cycleType = (cycleType s) // [vtyp]}
+
+-- Some helper functions
+
+dfsGraph :: Ord vertex => Graph vertex -> (Graph Int, Int -> vertex)
+dfsGraph g = (mapGraph v2i g, i2v)
+  where preorder = getPreorder (getDfs g)
+        i2v i = lookup' i (zip [1..] preorder)
+        v2i v = lookup' v (zip preorder [1..])
