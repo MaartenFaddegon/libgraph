@@ -6,7 +6,7 @@ Build-Type:     Simple
 Cabal-Version:  >= 1.10
 
 library
-  Build-Depends:     base >= 4 && < 5, monads-tf
+  Build-Depends:     base >= 4 && < 5, monads-tf, union-find
   exposed-modules:   Data.Graph.Libgraph.DepthFirst,
                      Data.Graph.Libgraph.Dominance
                      Data.Graph.Libgraph.Cycles
