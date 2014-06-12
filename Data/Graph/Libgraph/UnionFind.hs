@@ -4,18 +4,27 @@ module Data.Graph.Libgraph.UnionFind
 , find
 , union
 ) where
-import Data.UnionFind.IntMap(PointSupply,newPointSupply,fresh,repr,descriptor)
+
+import Data.UnionFind.IntMap( Point,PointSupply,newPointSupply
+                            , fresh,repr,descriptor)
 import qualified Data.UnionFind.IntMap as UF
+import Data.IntMap.Lazy(IntMap,(!))
+import qualified Data.IntMap.Lazy as IM
 
-type UF = PointSupply a
+data UF = UF {ps :: PointSupply Int, im :: IntMap (Point Int)}
 
-fromList :: [a] -> UF a
-fromList xs = foldl singleton newPointSupply xs
+fromList :: [Int] -> UF
+fromList xs = foldl singleton (UF newPointSupply IM.empty) xs
 
-singleton :: UF a -> a -> UF a
-singleton uf x = fst (fresh uf x)
+singleton :: UF -> Int -> UF
+singleton uf x = UF ps' $ IM.insert x p (im uf)
+  where (ps',p) = fresh (ps uf) x
 
-find :: UF a -> a -> a
-find uf = (descriptor uf) . (repr uf)
+point :: UF -> Int -> Point Int
+point uf i = (im uf) ! i
 
-union :: UF a 
+find :: UF -> Int -> Int
+find uf = (descriptor $ ps uf) . (repr $ ps uf) . (point uf)
+
+union :: UF -> Int -> Int -> UF
+union uf x y = undefined

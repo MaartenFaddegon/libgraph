@@ -7,6 +7,7 @@ import Control.Monad
 import Control.Monad.State
 import Data.Graph.Libgraph.Core
 import Data.Graph.Libgraph.DepthFirst
+import Data.Graph.Libgraph.UnionFind(UF)
 import qualified  Data.Graph.Libgraph.UnionFind as UF
 
 type S vertex = State (CycleNest vertex) ()
@@ -22,7 +23,7 @@ data CycleNest vertex = CycleNest
   , header       :: [(vertex, vertex)]
   , body         :: [vertex]              -- P in Havlak's algorithm
   , worklist     :: [vertex]
-  , uf           :: UF vertex
+  , uf           :: UF
   }
 
 -- Step a and b of Havlak
@@ -39,7 +40,7 @@ state0 g = state0'
           , header       = zip (preorder state0') $ cycle [root g]
           , body         = []
           , worklist     = []
-          , uf           = UF.newPointSupply
+          , uf           = UF.fromList[1..(length . preorder $ state0')]
           }
 
 getCycleNest :: Eq vertex => Graph vertex -> CycleNest vertex
