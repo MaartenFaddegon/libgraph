@@ -68,8 +68,15 @@ labelReducible w = do p <- gets $ body
 analyseBackPreds :: Eq vertex => Int -> S vertex
 analyseBackPreds w = do bps <- gets backPreds
                         mapM_ f (bps !! w)
-  where f v = if v /= w then return () -- MF TODO: add FIND(v) to body
+  where f v = if v /= w then addToBody (uf_find v)
                         else modifyCycleType (w,Self)
+
+
+uf_find :: Int -> S ()
+uf_find v = uf' <- gets uf
+            let r = UF.find uf' v
+            -- MF TODO update uf?
+            return r
 
 modifyCycleType :: (Int,CycleType) -> S vertex
 modifyCycleType vtyp = modify $ \s -> s { cycleType = (cycleType s) // [vtyp]}

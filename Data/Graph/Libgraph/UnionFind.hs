@@ -23,8 +23,9 @@ singleton uf x = UF ps' $ IM.insert x p (im uf)
 point :: UF -> Int -> Point Int
 point uf i = (im uf) ! i
 
+-- MF TODO: isn't the find supposed to update uf?
 find :: UF -> Int -> Int
 find uf = (descriptor $ ps uf) . (repr $ ps uf) . (point uf)
 
 union :: UF -> Int -> Int -> UF
-union uf x y = undefined
+union uf x y = undefined -- MF TODO
