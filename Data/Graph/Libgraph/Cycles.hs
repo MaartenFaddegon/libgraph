@@ -11,7 +11,7 @@ import Data.Graph.Libgraph.UnionFind(UF)
 import qualified  Data.Graph.Libgraph.UnionFind as UF
 import Data.Array
 
-type S vertex = State (CycleNest vertex) ()
+type S vertex a = State (CycleNest vertex) a
 
 data CycleType        = NonHeader | Self | Reducible | Irreducible
 data CycleNest vertex = CycleNest
@@ -52,34 +52,38 @@ getCycleNest g = execState (analyse [n s0..1]) s0
   where s0 = state0 g
 
 -- Part c of Havlak's algorithm
-analyse :: Eq vertex => [Int] -> S vertex
+analyse :: Eq vertex => [Int] -> S vertex ()
 analyse ws = mapM_ analyse' ws
   where analyse' w = do modify $ \s -> s { body = [] }
                         analyseBackPreds w
                         modify $ \s -> s { worklist = body s }
 
-labelReducible :: Eq vertex => Int -> S vertex
+labelReducible :: Eq vertex => Int -> S vertex ()
 labelReducible w = do p <- gets $ body
                       case p of [] -> modifyCycleType (w,Reducible)
                                 _  -> return ()
 
 
 -- Part d of Havlak's algorithm
-analyseBackPreds :: Eq vertex => Int -> S vertex
+analyseBackPreds :: Eq vertex => Int -> S vertex ()
 analyseBackPreds w = do bps <- gets backPreds
                         mapM_ f (bps !! w)
-  where f v = if v /= w then addToBody (uf_find v)
+  where f v = if v /= w then do x <- uf_find v
+                                addToBody x
                         else modifyCycleType (w,Self)
 
 
-uf_find :: Int -> S ()
-uf_find v = uf' <- gets uf
-            let r = UF.find uf' v
-            -- MF TODO update uf?
-            return r
+uf_find :: Int -> S vertex Int
+uf_find v = do uf' <- gets uf
+               let r = UF.find uf' v
+               -- MF TODO update uf?
+               return r
 
-modifyCycleType :: (Int,CycleType) -> S vertex
+modifyCycleType :: (Int,CycleType) -> S vertex ()
 modifyCycleType vtyp = modify $ \s -> s { cycleType = (cycleType s) // [vtyp]}
+
+addToBody :: Int -> S vertex ()
+addToBody v = modify $ \s -> s { body = v : body s }
 
 -- Some helper functions
 
