@@ -13,7 +13,7 @@ import Data.Array
 
 type S vertex a = State (CycleNest vertex) a
 
-data CycleType        = NonHeader | Self | Reducible | Irreducible
+data VertexType        = NonHeader | Self | Reducible | Irreducible
 data CycleNest vertex = CycleNest
   { graph        :: Graph Int
   , getVertex    :: Int -> vertex
@@ -21,7 +21,7 @@ data CycleNest vertex = CycleNest
   , dfs          :: Dfs Int
   , backPreds    :: [[Int]]
   , nonBackPreds :: Array Int [Int]
-  , cycleType    :: Array Int CycleType
+  , vertexType   :: Array Int VertexType
   , header       :: Array Int Int
   , body         :: [Int]              -- P in Havlak's algorithm
   , worklist     :: [Int]
@@ -40,7 +40,7 @@ state0 g = s0
           , dfs          = getDfs (graph s0)
           , backPreds    = map fst ps
           , nonBackPreds = listArray (1,n s0) $ map snd ps
-          , cycleType    = listArray (1,n s0) $ cycle [NonHeader]
+          , vertexType   = listArray (1,n s0) $ cycle [NonHeader]
           , header       = listArray (1,n s0) $ cycle [root . graph $ s0]
           , body         = []
           , worklist     = []
@@ -64,7 +64,7 @@ analyse ws = mapM_ analyse' ws
 
 labelReducible :: Eq vertex => Int -> S vertex ()
 labelReducible w = do p <- gets $ body
-                      case p of [] -> modifyCycleType (w,Reducible)
+                      case p of [] -> modifyVertexType (w,Reducible)
                                 _  -> return ()
 work :: Int -> S vertex ()
 work w = do
@@ -90,7 +90,7 @@ analyseBackPreds w = do bps <- gets backPreds
                         mapM_ f (bps !! w)
   where f v = if v /= w then do x <- uf_find v
                                 addToBody x
-                        else modifyCycleType (w,Self)
+                        else modifyVertexType (w,Self)
 
 
 
@@ -107,7 +107,7 @@ chase' w y = do
   d  <- gets dfs
   p  <- gets body
   if not $ isAncestor d w y' then do
-    modifyCycleType (w,Irreducible)
+    modifyVertexType (w,Irreducible)
     y' `addToNonBackPredsOf` w
   else if not (y' `elem` p) && not (y' /= w) then do
     addToBody y'
@@ -123,8 +123,8 @@ dfsGraph g = (mapGraph v2i g, i2v)
         i2v i = lookup' i (zip [1..] preorder)
         v2i v = lookup' v (zip preorder [1..])
 
-modifyCycleType :: (Int,CycleType) -> S vertex ()
-modifyCycleType vtyp = modify $ \s -> s { cycleType = (cycleType s) // [vtyp]}
+modifyVertexType :: (Int,VertexType) -> S vertex ()
+modifyVertexType vtyp = modify $ \s -> s { vertexType = (vertexType s) // [vtyp]}
 
 addToNonBackPredsOf :: Int -> Int -> S vertex ()
 addToNonBackPredsOf y w =
