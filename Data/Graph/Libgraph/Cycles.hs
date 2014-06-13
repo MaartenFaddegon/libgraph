@@ -20,9 +20,9 @@ data CycleNest vertex = CycleNest
   , n            :: Int
   , dfs          :: Dfs Int
   , backPreds    :: [[Int]]
-  , nonBackPreds :: [[Int]]
+  , nonBackPreds :: Array Int [Int]
   , cycleType    :: Array Int CycleType
-  , header       :: [Int]
+  , header       :: Array Int Int
   , body         :: [Int]              -- P in Havlak's algorithm
   , worklist     :: [Int]
   , uf           :: UF
@@ -39,9 +39,9 @@ state0 g = s0
           , n            = length (vertices g)
           , dfs          = getDfs (graph s0)
           , backPreds    = map fst ps
-          , nonBackPreds = map snd ps
+          , nonBackPreds = listArray (1,n s0) $ map snd ps
           , cycleType    = listArray (1,n s0) $ cycle [NonHeader]
-          , header       = take (n s0) $ cycle [root . graph $ s0]
+          , header       = listArray (1,n s0) $ cycle [root . graph $ s0]
           , body         = []
           , worklist     = []
           , uf           = UF.fromList [1..n s0]
@@ -57,12 +57,32 @@ analyse ws = mapM_ analyse' ws
   where analyse' w = do modify $ \s -> s { body = [] }
                         analyseBackPreds w
                         modify $ \s -> s { worklist = body s }
+                        labelReducible w
+                        work w
+                        merge w
+
 
 labelReducible :: Eq vertex => Int -> S vertex ()
 labelReducible w = do p <- gets $ body
                       case p of [] -> modifyCycleType (w,Reducible)
                                 _  -> return ()
+work :: Int -> S vertex ()
+work w = do
+  wl <- gets worklist
+  case wl of
+    []      -> return ()
+    (x:wl') -> do modify $ \s -> s { worklist = wl' }
+                  chase w x
+                  work w
 
+merge :: Int -> S vertex ()
+merge w = do
+  p <- gets body
+  mapM_ (merge' w) p
+
+merge' w x = do
+  modify $ \s -> s { header = (header s) // [(x,w)] }
+  uf_union x w
 
 -- Part d of Havlak's algorithm
 analyseBackPreds :: Eq vertex => Int -> S vertex ()
@@ -73,17 +93,27 @@ analyseBackPreds w = do bps <- gets backPreds
                         else modifyCycleType (w,Self)
 
 
-uf_find :: Int -> S vertex Int
-uf_find v = do uf' <- gets uf
-               let r = UF.find uf' v
-               -- MF TODO update uf?
-               return r
 
-modifyCycleType :: (Int,CycleType) -> S vertex ()
-modifyCycleType vtyp = modify $ \s -> s { cycleType = (cycleType s) // [vtyp]}
+-- Part e of Havlak's algorithm
 
-addToBody :: Int -> S vertex ()
-addToBody v = modify $ \s -> s { body = v : body s }
+chase :: Int -> Int -> S vertex ()
+chase w x = do
+  nbps <- gets nonBackPreds
+  mapM_ (chase' w) (nbps ! x)
+
+chase' :: Int -> Int -> S vertex ()
+chase' w y = do
+  y' <- uf_find y
+  d  <- gets dfs
+  p  <- gets body
+  if not $ isAncestor d w y' then do
+    modifyCycleType (w,Irreducible)
+    y' `addToNonBackPredsOf` w
+  else if not (y' `elem` p) && not (y' /= w) then do
+    addToBody y'
+    addWork y'
+  else
+    return ()
 
 -- Some helper functions
 
@@ -92,3 +122,26 @@ dfsGraph g = (mapGraph v2i g, i2v)
   where preorder = getPreorder (getDfs g)
         i2v i = lookup' i (zip [1..] preorder)
         v2i v = lookup' v (zip preorder [1..])
+
+modifyCycleType :: (Int,CycleType) -> S vertex ()
+modifyCycleType vtyp = modify $ \s -> s { cycleType = (cycleType s) // [vtyp]}
+
+addToNonBackPredsOf :: Int -> Int -> S vertex ()
+addToNonBackPredsOf y w =
+  modify $ \s -> s { nonBackPreds = (nonBackPreds s) // [(w,y : (nonBackPreds s) ! w)] }
+
+addToBody :: Int -> S vertex ()
+addToBody v = modify $ \s -> s { body = v : body s }
+
+addWork :: Int -> S vertex ()
+addWork v = modify $ \s -> s { worklist = v : worklist s }
+
+uf_find :: Int -> S vertex Int
+uf_find v = do uf' <- gets uf
+               let r = UF.find uf' v
+               -- MF TODO update uf?
+               return r
+
+uf_union :: Int -> Int -> S vertex ()
+uf_union v w = modify $ \s -> s { uf = UF.union (uf s) v w }
+

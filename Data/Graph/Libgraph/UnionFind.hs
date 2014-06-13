@@ -28,4 +28,4 @@ find :: UF -> Int -> Int
 find uf = (descriptor $ ps uf) . (repr $ ps uf) . (point uf)
 
 union :: UF -> Int -> Int -> UF
-union uf x y = undefined -- MF TODO
+union uf x y = uf { ps = UF.union (ps uf) (point uf x) (point uf y) }
