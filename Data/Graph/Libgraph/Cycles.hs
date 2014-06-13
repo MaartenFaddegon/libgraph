@@ -13,7 +13,9 @@ import Data.Array
 
 type S vertex a = State (CycleNest vertex) a
 
-data VertexType        = NonHeader | Self | Reducible | Irreducible
+data VertexType = NonHead | SelfHead | RedHead | IrredHead
+  deriving Show
+
 data CycleNest vertex = CycleNest
   { graph        :: Graph Int
   , getVertex    :: Int -> vertex
@@ -28,6 +30,21 @@ data CycleNest vertex = CycleNest
   , uf           :: UF
   }
 
+instance Show (CycleNest vertex) where
+  show cycleNest
+    =  "diGraph G {\n"
+    ++ "rankdir=BT\n"
+    ++ foldl (\s -> (s++) . showVType)  "" (assocs . vertexType $ cycleNest)
+    ++ foldl (\s -> (s++) . showHeader) "" (assocs . header     $ cycleNest)
+    ++ "}\n"
+
+showVType :: (Int,VertexType) -> String
+showVType (i,vtyp) = "v" ++ show i ++ " [label=\"" ++ show vtyp ++ "\"]\n"
+
+showHeader :: (Int,Int) -> String
+showHeader (i,j) = v i ++ " -> " ++ v j ++ "\n"
+  where v x = "v" ++ show x
+
 -- Part a and b of Havlak's algorithm
 state0 :: Ord vertex => Graph vertex -> CycleNest vertex
 state0 g = s0
@@ -40,7 +57,7 @@ state0 g = s0
           , dfs          = getDfs (graph s0)
           , backPreds    = map fst ps
           , nonBackPreds = listArray (1,n s0) $ map snd ps
-          , vertexType   = listArray (1,n s0) $ cycle [NonHeader]
+          , vertexType   = listArray (1,n s0) $ cycle [NonHead]
           , header       = listArray (1,n s0) $ cycle [root . graph $ s0]
           , body         = []
           , worklist     = []
@@ -64,7 +81,7 @@ analyse ws = mapM_ analyse' ws
 
 labelReducible :: Eq vertex => Int -> S vertex ()
 labelReducible w = do p <- gets $ body
-                      case p of [] -> modifyVertexType (w,Reducible)
+                      case p of [] -> modifyVertexType (w,RedHead)
                                 _  -> return ()
 work :: Int -> S vertex ()
 work w = do
@@ -90,7 +107,7 @@ analyseBackPreds w = do bps <- gets backPreds
                         mapM_ f (bps !! w)
   where f v = if v /= w then do x <- uf_find v
                                 addToBody x
-                        else modifyVertexType (w,Self)
+                        else modifyVertexType (w,SelfHead)
 
 
 
@@ -107,7 +124,7 @@ chase' w y = do
   d  <- gets dfs
   p  <- gets body
   if not $ isAncestor d w y' then do
-    modifyVertexType (w,Irreducible)
+    modifyVertexType (w,IrredHead)
     y' `addToNonBackPredsOf` w
   else if not (y' `elem` p) && not (y' /= w) then do
     addToBody y'
