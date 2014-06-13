@@ -65,7 +65,7 @@ state0 g = s0
           }
 
 getCycleNest :: Ord vertex => Graph vertex -> CycleNest vertex
-getCycleNest g = execState (analyse [n s0..1]) s0
+getCycleNest g = execState (analyse . reverse $ [1..n s0]) s0
   where s0 = state0 g
 
 -- Part c of Havlak's algorithm
@@ -104,10 +104,13 @@ merge' w x = do
 -- Part d of Havlak's algorithm
 analyseBackPreds :: Eq vertex => Int -> S vertex ()
 analyseBackPreds w = do bps <- gets backPreds
-                        mapM_ f (bps !! w)
+                        mapM_ f (bps !!! w)
   where f v = if v /= w then do x <- uf_find v
                                 addToBody x
                         else modifyVertexType (w,SelfHead)
+
+(!!!) :: [a] -> Int -> a
+xs !!! i = xs !! (i-1)
 
 
 
