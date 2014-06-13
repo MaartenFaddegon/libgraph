@@ -1,5 +1,6 @@
 module Data.Graph.Libgraph.Dot
 ( showWith
+, escape
 ) where
 import Data.Graph.Libgraph.Core
 

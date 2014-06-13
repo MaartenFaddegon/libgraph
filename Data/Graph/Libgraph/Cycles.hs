@@ -8,8 +8,10 @@ import Control.Monad.State
 import Data.Graph.Libgraph.Core
 import Data.Graph.Libgraph.DepthFirst
 import Data.Graph.Libgraph.UnionFind(UF)
+import Data.Graph.Libgraph.Dot
 import qualified  Data.Graph.Libgraph.UnionFind as UF
 import Data.Array
+
 
 type S vertex a = State (CycleNest vertex) a
 
@@ -30,20 +32,6 @@ data CycleNest vertex = CycleNest
   , uf           :: UF
   }
 
-instance Show (CycleNest vertex) where
-  show cycleNest
-    =  "diGraph G {\n"
-    ++ "rankdir=BT\n"
-    ++ foldl (\s -> (s++) . showVType)  "" (assocs . vertexType $ cycleNest)
-    ++ foldl (\s -> (s++) . showHeader) "" (assocs . header     $ cycleNest)
-    ++ "}\n"
-
-showVType :: (Int,VertexType) -> String
-showVType (i,vtyp) = "v" ++ show i ++ " [label=\"" ++ show vtyp ++ "\"]\n"
-
-showHeader :: (Int,Int) -> String
-showHeader (i,j) = v i ++ " -> " ++ v j ++ "\n"
-  where v x = "v" ++ show x
 
 -- Part a and b of Havlak's algorithm
 state0 :: Ord vertex => Graph vertex -> CycleNest vertex
@@ -112,8 +100,6 @@ analyseBackPreds w = do bps <- gets backPreds
 (!!!) :: [a] -> Int -> a
 xs !!! i = xs !! (i-1)
 
-
-
 -- Part e of Havlak's algorithm
 
 chase :: Int -> Int -> S vertex ()
@@ -165,3 +151,22 @@ uf_find v = do uf' <- gets uf
 uf_union :: Int -> Int -> S vertex ()
 uf_union v w = modify $ \s -> s { uf = UF.union (uf s) v w }
 
+-- Show
+
+instance Show vertex => Show (CycleNest vertex) where
+  show cycleNest
+    =  "diGraph G {\n"
+    ++ "rankdir=BT\n"
+    ++ foldl (\s -> (s++) . showVType i2v)  "" (assocs . vertexType $ cycleNest)
+    ++ foldl (\s -> (s++) . showHeader)     "" (assocs . header     $ cycleNest)
+    ++ "}\n"
+      where i2v = getVertex cycleNest
+
+showVType :: Show vertex => (Int -> vertex) -> (Int,VertexType) -> String
+showVType i2v (i,vtyp) 
+  = "v" ++ show i ++ " [label=\"" ++ s (i2v i) ++ "(" ++ show vtyp ++ ")\"]\n"
+  where s = escape . show
+
+showHeader :: (Int,Int) -> String
+showHeader (i,j) = v i ++ " -> " ++ v j ++ "\n"
+  where v x = "v" ++ show x
