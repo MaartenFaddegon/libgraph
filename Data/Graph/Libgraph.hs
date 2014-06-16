@@ -2,6 +2,10 @@ module Data.Graph.Libgraph
 ( Graph(..)
 , Arc(..)
 , (-->)
+, succs
+, preds
+, isSucc
+, isPred
 , Dfs
 , EdgeType(..)
 , getDfs

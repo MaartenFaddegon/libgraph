@@ -22,18 +22,21 @@ data Graph vertex = Graph { root :: vertex
 --------------------------------------------------------------------------------
 -- Successors and predecessors
 
+-- | Direct successors of a vertex.
 succs :: Eq vertex => Graph vertex -> vertex -> [vertex]
 succs g v = map target $ filter ((== v) . source) (arcs g)
 
+-- | Direct predecessors of a vertex.
 preds :: Eq vertex => Graph vertex -> vertex -> [vertex]
 preds g v = map source $ filter ((== v) . target) (arcs g)
 
+-- | Is first vertex a successor of second?
 isSucc :: Eq vertex => Graph vertex -> vertex -> vertex -> Bool
 isSucc g w v = w `elem` succs g v
 
+-- | Is first vertex a predecessor of second?
 isPred :: Eq vertex => Graph vertex -> vertex -> vertex -> Bool
 isPred g w v = w `elem` preds g v
-
 
 --------------------------------------------------------------------------------
 -- Graph conversion
