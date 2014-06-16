@@ -1,8 +1,11 @@
+module Test where
+
 import System.Process(runCommand)
 import Data.Graph.Libgraph.Core
 import Data.Graph.Libgraph.DepthFirst
 import Data.Graph.Libgraph.Dominance
 import Data.Graph.Libgraph.Cycles
+import Data.Graph.Libgraph.Dagify
 
 type G = Graph String
 
@@ -44,3 +47,7 @@ domTest = test (show . getDomsets)
 
 cycleTest :: G -> IO()
 cycleTest = test (show . getCycleNest)
+
+dagTest :: G -> IO()
+dagTest = test (show . getDfs . (dagify collapse))
+        where collapse = foldl (++) ""

@@ -50,6 +50,9 @@ mapArcs = map . mapArc
 mapArc :: (a -> b) -> Arc a -> Arc b
 mapArc f (Arc src tgt) = Arc (f src) (f tgt)
 
+filterArc :: (Arc vertex->Bool) -> Graph vertex -> Graph vertex
+filterArc p (Graph r vs as) = Graph r vs (filter p as)
+
 --------------------------------------------------------------------------------
 -- Some other helper functions
 

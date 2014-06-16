@@ -20,8 +20,10 @@ module Data.Graph.Libgraph
 , CycleTree(..)
 , getCycles
 , getRedHeaders
+, dagify
 ) where
 import Data.Graph.Libgraph.Core
 import Data.Graph.Libgraph.DepthFirst
 import Data.Graph.Libgraph.Dominance
 import Data.Graph.Libgraph.Cycles
+import Data.Graph.Libgraph.Dagify
