@@ -26,7 +26,7 @@ dfsTest :: G -> IO ()
 dfsTest = test (show . getDfs)
 
 domTest :: G -> IO ()
-domTest = test (show . domsets)
+domTest = test (show . getDomsets)
 
 cycleTest :: G -> IO()
 cycleTest = test (show . getCycleNest)

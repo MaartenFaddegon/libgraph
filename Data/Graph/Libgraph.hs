@@ -16,7 +16,10 @@ module Data.Graph.Libgraph
 , Domsets
 , getDomsets
 , getDominators
+, CycleTree
+, getCycles
 ) where
 import Data.Graph.Libgraph.Core
 import Data.Graph.Libgraph.DepthFirst
 import Data.Graph.Libgraph.Dominance
+import Data.Graph.Libgraph.Cycles

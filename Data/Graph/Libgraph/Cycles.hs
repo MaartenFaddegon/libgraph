@@ -1,6 +1,8 @@
 module Data.Graph.Libgraph.Cycles
-( getCycleNest
+( CycleTree
+, getCycles
 , CycleNest
+, getCycleNest
 ) where
 import Data.List
 import Control.Monad
@@ -11,6 +13,37 @@ import Data.Graph.Libgraph.UnionFind(UF)
 import Data.Graph.Libgraph.Dot
 import qualified  Data.Graph.Libgraph.UnionFind as UF
 import Data.Array
+
+data CycleTree vertex = CycleTree vertex [CycleTree vertex]
+                      | Reducible vertex [CycleTree vertex]
+                      | Irreducible      [CycleTree vertex]
+
+getCycles :: Ord vertex => Graph vertex -> CycleTree vertex
+getCycles g = cycleTree nest (children nest) 1
+  where nest = getCycleNest g
+
+cycleTree :: CycleNest vertex -> Array Int [Int] -> Int -> CycleTree vertex
+cycleTree nest cs x
+  = case (vertexType nest) ! x of
+    NonHead   -> CycleTree v cts
+    SelfHead  -> Reducible v []
+    RedHead   -> Reducible v cts
+    IrredHead -> Irreducible ((CycleTree v []) : cts)
+    
+    where cts  = map ct (cs ! x)
+          ct c = cycleTree nest cs c
+          v    = getVertex nest x
+
+children :: CycleNest vertex -> Array Int [Int]
+children nest
+  = foldl add cs0 ps
+  where cs0 = listArray (1,n nest) []
+        ps  = assocs (header nest)
+        add cs (p,c) = if p == c then cs else cs // [(c,p : cs ! c)]
+
+
+
+-- Implementation of Havlaks algorithm.
 
 type S vertex a = State (CycleNest vertex) a
 
