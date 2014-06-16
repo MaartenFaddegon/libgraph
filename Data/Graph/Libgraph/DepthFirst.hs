@@ -19,13 +19,15 @@ data Dfs vertex = Dfs { num       :: [(vertex,Int)]
 
 data EdgeType = TreeEdge | BackEdge | FwdEdge | CrossEdge
 
-isAncestor :: Eq vertex => Dfs vertex -> vertex -> vertex -> Bool
-isAncestor d v w = (n_w <= n_v && n_v <= l_w)
+
+-- Is w a (recursive) parent of v?
+isAncestor :: (Show vertex, Eq vertex) => Dfs vertex -> vertex -> vertex -> Bool
+isAncestor d w v = (n_w <= n_v && n_v <= l_w)
   where n_v    = lookup' v (num d)
         n_w    = lookup' w (num d)
         l_w    = lookup' w (lastVisit d)
 
-getEdgetype :: Eq vertex => Dfs vertex -> Arc vertex -> EdgeType
+getEdgetype :: (Show vertex,Eq vertex) => Dfs vertex -> Arc vertex -> EdgeType
 getEdgetype d a@(Arc v w)
   | a `elem` (spanning d) = TreeEdge
   | w `isAnc` v           = FwdEdge
@@ -34,10 +36,10 @@ getEdgetype d a@(Arc v w)
   where isAnc = isAncestor d
 
 getPreorder :: Dfs vertex -> [vertex]
-getPreorder d = map fst (num d)
+getPreorder d = map fst (reverse . num $ d)
 
 getPostorder :: Dfs vertex -> [vertex]
-getPostorder d = map fst (lastVisit d)
+getPostorder d = map fst (reverse . lastVisit $ d)
 
 data Succs vertex = Succs vertex [vertex]
 

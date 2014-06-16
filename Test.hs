@@ -1,4 +1,4 @@
-import System.Process(system)
+import System.Process(runCommand)
 import Data.Graph.Libgraph.Core
 import Data.Graph.Libgraph.DepthFirst
 import Data.Graph.Libgraph.Dominance
@@ -17,9 +17,10 @@ graph5 = Graph a [a,b,c,d] [a-->b,a-->c
                            ,c-->d,d-->c]
 
 test :: (G -> String) -> G -> IO ()
-test sh g = do writeFile "/tmp/test.dot" (sh g)
-               system $ "cat /tmp/test.dot | dot -Tpng | display -"
-               return ()
+test sh g = do 
+  writeFile "/tmp/test.dot" (sh g)
+  runCommand $ "cat /tmp/test.dot | dot -Tpng | display -"
+  return ()
 
 dfsTest :: G -> IO ()
 dfsTest = test (show . getDfs)

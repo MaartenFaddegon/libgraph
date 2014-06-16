@@ -12,7 +12,6 @@ import Data.Graph.Libgraph.Dot
 import qualified  Data.Graph.Libgraph.UnionFind as UF
 import Data.Array
 
-
 type S vertex a = State (CycleNest vertex) a
 
 data VertexType = NonHead | SelfHead | RedHead | IrredHead
@@ -37,14 +36,16 @@ data CycleNest vertex = CycleNest
 state0 :: Ord vertex => Graph vertex -> CycleNest vertex
 state0 g = s0
   where ps   = map (\w -> partition (isAncestor (dfs s0) w) (preds (graph s0) w)) [1..n s0]
+        bps  = map fst ps
+        nbps = map snd ps
         dfsg = dfsGraph g
         s0   = CycleNest
           { graph        = fst dfsg
           , getVertex    = snd dfsg
           , n            = length (vertices g)
           , dfs          = getDfs (graph s0)
-          , backPreds    = map fst ps
-          , nonBackPreds = listArray (1,n s0) $ map snd ps
+          , backPreds    = bps
+          , nonBackPreds = listArray (1,n s0) nbps
           , vertexType   = listArray (1,n s0) $ cycle [NonHead]
           , header       = listArray (1,n s0) $ cycle [root . graph $ s0]
           , body         = []
@@ -69,8 +70,8 @@ analyse ws = mapM_ analyse' ws
 
 labelReducible :: Eq vertex => Int -> S vertex ()
 labelReducible w = do p <- gets $ body
-                      case p of [] -> modifyVertexType (w,RedHead)
-                                _  -> return ()
+                      case p of [] -> return ()
+                                _  -> modifyVertexType (w,RedHead)
 work :: Int -> S vertex ()
 work w = do
   wl <- gets worklist
@@ -115,7 +116,7 @@ chase' w y = do
   if not $ isAncestor d w y' then do
     modifyVertexType (w,IrredHead)
     y' `addToNonBackPredsOf` w
-  else if not (y' `elem` p) && not (y' /= w) then do
+  else if not (y' `elem` p) && y' /= w then do
     addToBody y'
     addWork y'
   else
@@ -130,7 +131,8 @@ dfsGraph g = (mapGraph v2i g, i2v)
         v2i v = lookup' v (zip preorder [1..])
 
 modifyVertexType :: (Int,VertexType) -> S vertex ()
-modifyVertexType vtyp = modify $ \s -> s { vertexType = (vertexType s) // [vtyp]}
+modifyVertexType vtyp = do
+  modify $ \s -> s { vertexType = (vertexType s) // [vtyp]}
 
 addToNonBackPredsOf :: Int -> Int -> S vertex ()
 addToNonBackPredsOf y w =
@@ -143,10 +145,11 @@ addWork :: Int -> S vertex ()
 addWork v = modify $ \s -> s { worklist = v : worklist s }
 
 uf_find :: Int -> S vertex Int
-uf_find v = do uf' <- gets uf
-               let r = UF.find uf' v
-               -- MF TODO update uf?
-               return r
+uf_find v = do 
+  uf' <- gets uf
+  let r =  UF.find uf' v
+  -- MF TODO update uf?
+  return r
 
 uf_union :: Int -> Int -> S vertex ()
 uf_union v w = modify $ \s -> s { uf = UF.union (uf s) v w }
@@ -164,7 +167,7 @@ instance Show vertex => Show (CycleNest vertex) where
 
 showVType :: Show vertex => (Int -> vertex) -> (Int,VertexType) -> String
 showVType i2v (i,vtyp) 
-  = "v" ++ show i ++ " [label=\"" ++ s (i2v i) ++ "(" ++ show vtyp ++ ")\"]\n"
+  = "v" ++ show i ++ " [label=\"" ++ s (i2v i) ++ " (" ++ show i ++ " | " ++ show vtyp ++ ")\"]\n"
   where s = escape . show
 
 showHeader :: (Int,Int) -> String
