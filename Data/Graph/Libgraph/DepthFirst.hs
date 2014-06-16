@@ -1,5 +1,6 @@
 module Data.Graph.Libgraph.DepthFirst
-( Dfs(num,lastVisit)
+( Dfs
+, EdgeType(..)
 , getDfs
 , getEdgetype
 , getPreorder
@@ -20,13 +21,14 @@ data Dfs vertex = Dfs { num       :: [(vertex,Int)]
 data EdgeType = TreeEdge | BackEdge | FwdEdge | CrossEdge
 
 
--- Is w a (recursive) parent of v?
+-- | Is first vertex a (recursive) parent of second vertex?
 isAncestor :: (Show vertex, Eq vertex) => Dfs vertex -> vertex -> vertex -> Bool
 isAncestor d w v = (n_w <= n_v && n_v <= l_w)
   where n_v    = lookup' v (num d)
         n_w    = lookup' w (num d)
         l_w    = lookup' w (lastVisit d)
 
+-- | The 'EdgeType' of an 'Arc'.
 getEdgetype :: (Show vertex,Eq vertex) => Dfs vertex -> Arc vertex -> EdgeType
 getEdgetype d a@(Arc v w)
   | a `elem` (spanning d) = TreeEdge
@@ -35,9 +37,11 @@ getEdgetype d a@(Arc v w)
   | otherwise             = CrossEdge
   where isAnc = isAncestor d
 
+-- | Get list of vertices in the order they were visited by the depth-first search.
 getPreorder :: Dfs vertex -> [vertex]
 getPreorder d = map fst (reverse . num $ d)
 
+-- | Get list of vertices in the order they were last visited by the depth-first search.
 getPostorder :: Dfs vertex -> [vertex]
 getPostorder d = map fst (reverse . lastVisit $ d)
 
@@ -52,6 +56,7 @@ data DfsState vertex = DfsState { graph'     :: Graph vertex
                                 , lastVisit' :: [(vertex,Int)]
                                 }
 
+-- | Walk graph in depth-first order and number the vertices.
 getDfs :: Eq vertex => Graph vertex -> Dfs vertex
 getDfs g = Dfs (num' finalState) (lastVisit' finalState) (spanning' finalState) g
   where state0 = DfsState { graph'     = g
