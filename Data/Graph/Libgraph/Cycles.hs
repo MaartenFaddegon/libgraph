@@ -1,5 +1,5 @@
 module Data.Graph.Libgraph.Cycles
-( CycleTree
+( CycleTree(..)
 , getCycles
 , CycleNest
 , getCycleNest
@@ -17,6 +17,7 @@ import Data.Array
 data CycleTree vertex = CycleTree vertex [CycleTree vertex]
                       | Reducible vertex [CycleTree vertex]
                       | Irreducible      [CycleTree vertex]
+                      deriving Show
 
 getCycles :: Ord vertex => Graph vertex -> CycleTree vertex
 getCycles g = cycleTree nest (children nest) 1
@@ -37,11 +38,11 @@ cycleTree nest cs x
 children :: CycleNest vertex -> Array Int [Int]
 children nest
   = foldl add cs0 ps
-  where cs0 = listArray (1,n nest) []
+  where cs0 = listArray (1,n nest) (cycle [[]])
         ps  = assocs (header nest)
-        add cs (p,c) = if p == c then cs else cs // [(c,p : cs ! c)]
-
-
+        add cs (p,c) = if p == c then cs else cs // 
+                [(c,p : [])]
+                -- [(c,p : cs ! c)]
 
 -- Implementation of Havlaks algorithm.
 

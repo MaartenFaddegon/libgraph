@@ -6,6 +6,7 @@ module Data.Graph.Libgraph
 , preds
 , isSucc
 , isPred
+, mapGraph
 , Dfs
 , EdgeType(..)
 , getDfs
@@ -16,7 +17,7 @@ module Data.Graph.Libgraph
 , Domsets
 , getDomsets
 , getDominators
-, CycleTree
+, CycleTree(..)
 , getCycles
 ) where
 import Data.Graph.Libgraph.Core
