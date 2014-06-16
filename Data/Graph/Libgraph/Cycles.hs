@@ -29,20 +29,25 @@ cycleTree nest cs x
     NonHead   -> CycleTree v cts
     SelfHead  -> Reducible v []
     RedHead   -> Reducible v cts
-    IrredHead -> Irreducible ((CycleTree v []) : cts)
+    IrredHead -> Irreducible ((CycleTree v []) : simplify cts)
     
     where cts  = map ct (cs ! x)
           ct c = cycleTree nest cs c
           v    = getVertex nest x
+
+-- Flattens irreducible loops.
+simplify :: [CycleTree vertex] -> [CycleTree vertex]
+simplify vs = foldl simplify' [] vs
+  where simplify' acc v = case v of
+          (Irreducible ws) -> ws ++ acc
+          _                -> v : acc
 
 children :: CycleNest vertex -> Array Int [Int]
 children nest
   = foldl add cs0 ps
   where cs0 = listArray (1,n nest) (cycle [[]])
         ps  = assocs (header nest)
-        add cs (p,c) = if p == c then cs else cs // 
-                [(c,p : [])]
-                -- [(c,p : cs ! c)]
+        add cs (p,c) = if p == c then cs else cs // [(c,p : cs ! c)]
 
 
 -- | Entry vertices of reducible cycles.
