@@ -19,6 +19,7 @@ module Data.Graph.Libgraph
 , getDominators
 , CycleTree(..)
 , getCycles
+, getRedHeaders
 ) where
 import Data.Graph.Libgraph.Core
 import Data.Graph.Libgraph.DepthFirst

@@ -3,6 +3,7 @@ module Data.Graph.Libgraph.Cycles
 , getCycles
 , CycleNest
 , getCycleNest
+, getRedHeaders
 ) where
 import Data.List
 import Control.Monad
@@ -19,9 +20,8 @@ data CycleTree vertex = CycleTree vertex [CycleTree vertex]
                       | Irreducible      [CycleTree vertex]
                       deriving Show
 
-getCycles :: Ord vertex => Graph vertex -> CycleTree vertex
-getCycles g = cycleTree nest (children nest) 1
-  where nest = getCycleNest g
+getCycles :: Ord vertex => CycleNest vertex -> CycleTree vertex
+getCycles nest = cycleTree nest (children nest) 1
 
 cycleTree :: CycleNest vertex -> Array Int [Int] -> Int -> CycleTree vertex
 cycleTree nest cs x
@@ -43,6 +43,17 @@ children nest
         add cs (p,c) = if p == c then cs else cs // 
                 [(c,p : [])]
                 -- [(c,p : cs ! c)]
+
+
+-- | Entry vertices of reducible cycles.
+getRedHeaders :: CycleNest vertex -> [vertex]
+getRedHeaders nest
+  = map i2v (filter (isRedHead . snd) vtyps)
+  where vtyps = assocs . vertexType $ nest 
+        i2v   = (getVertex nest) . fst
+
+isRedHead RedHead = True
+isRedHead _       = False
 
 -- Implementation of Havlaks algorithm.
 

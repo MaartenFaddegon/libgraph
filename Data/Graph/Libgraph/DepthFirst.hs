@@ -32,8 +32,8 @@ isAncestor d w v = (n_w <= n_v && n_v <= l_w)
 getEdgetype :: (Show vertex,Eq vertex) => Dfs vertex -> Arc vertex -> EdgeType
 getEdgetype d a@(Arc v w)
   | a `elem` (spanning d) = TreeEdge
-  | w `isAnc` v           = FwdEdge
-  | v `isAnc` w           = BackEdge
+  | v `isAnc` w           = FwdEdge
+  | w `isAnc` v           = BackEdge
   | otherwise             = CrossEdge
   where isAnc = isAncestor d
 

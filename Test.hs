@@ -16,6 +16,11 @@ graph5 = Graph a [a,b,c,d] [a-->b,a-->c
                            ,b-->c,c-->b
                            ,c-->d,d-->c]
 
+-- as graph5 but with the 
+graph6 = Graph a [a,b,c,d] [a-->b,a-->c
+                           ,b-->c,c-->b
+                           ,c-->d]
+
 test :: (G -> String) -> G -> IO ()
 test sh g = do 
   writeFile "/tmp/test.dot" (sh g)
