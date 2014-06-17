@@ -21,9 +21,13 @@ module Data.Graph.Libgraph
 , getCycles
 , getRedHeaders
 , dagify
+, showWith
+, escape
+, display
 ) where
 import Data.Graph.Libgraph.Core
 import Data.Graph.Libgraph.DepthFirst
 import Data.Graph.Libgraph.Dominance
 import Data.Graph.Libgraph.Cycles
 import Data.Graph.Libgraph.Dagify
+import Data.Graph.Libgraph.Dot

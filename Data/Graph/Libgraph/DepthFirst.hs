@@ -21,7 +21,6 @@ data Dfs vertex = Dfs { num       :: [(vertex,Int)]
 data EdgeType = TreeEdge | BackEdge | FwdEdge | CrossEdge
   deriving Eq
 
-
 -- | Is first vertex a (recursive) parent of second vertex?
 isAncestor :: Eq vertex => Dfs vertex -> vertex -> vertex -> Bool
 isAncestor d w v = (n_w <= n_v && n_v <= l_w)
@@ -33,8 +32,8 @@ isAncestor d w v = (n_w <= n_v && n_v <= l_w)
 getEdgetype :: Eq vertex => Dfs vertex -> Arc vertex -> EdgeType
 getEdgetype d a@(Arc v w)
   | a `elem` (spanning d) = TreeEdge
-  | v `isAnc` w           = FwdEdge
   | w `isAnc` v           = BackEdge
+  | v `isAnc` w           = FwdEdge
   | otherwise             = CrossEdge
   where isAnc = isAncestor d
 

@@ -1,11 +1,11 @@
 module Test where
 
-import System.Process(runCommand)
 import Data.Graph.Libgraph.Core
 import Data.Graph.Libgraph.DepthFirst
 import Data.Graph.Libgraph.Dominance
 import Data.Graph.Libgraph.Cycles
 import Data.Graph.Libgraph.Dagify
+import Data.Graph.Libgraph.Dot
 
 type G = Graph String
 
@@ -31,23 +31,21 @@ graph7 = Graph a [a,b,c,d,e] [a-->b,b-->c,c-->d,d-->e
                              ,d-->c,e-->b
                              ,b-->d,a-->e]
 
+-- Self cycle.
+graph8 = Graph a [a,b] [a-->a,a-->b]
 
 
-test :: (G -> String) -> G -> IO ()
-test sh g = do 
-  writeFile "/tmp/test.dot" (sh g)
-  runCommand $ "cat /tmp/test.dot | dot -Tpng | display -"
-  return ()
+
 
 dfsTest :: G -> IO ()
-dfsTest = test (show . getDfs)
+dfsTest = display (show . getDfs)
 
 domTest :: G -> IO ()
-domTest = test (show . getDomsets)
+domTest = display (show . getDomsets)
 
 cycleTest :: G -> IO()
-cycleTest = test (show . getCycleNest)
+cycleTest = display (show . getCycleNest)
 
 dagTest :: G -> IO()
-dagTest = test (show . getDfs . (dagify collapse))
+dagTest = display (show . getDfs . (dagify collapse))
         where collapse = foldl (++) ""

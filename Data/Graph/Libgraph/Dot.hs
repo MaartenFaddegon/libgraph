@@ -1,9 +1,12 @@
 module Data.Graph.Libgraph.Dot
 ( showWith
 , escape
+, display
 ) where
 import Data.Graph.Libgraph.Core
+import System.Process(runCommand)
 
+-- | Convert Graph to String with functions to show vertices and arcs.
 showWith :: Eq vertex => Graph vertex -> (vertex->String) -> (Arc vertex->String) -> String
 showWith g vLabel aLabel
   = "diGraph G {\n"
@@ -27,6 +30,14 @@ showArc vs aLabel a
 vName :: Int -> String
 vName i = "v" ++ show i
 
+escape :: String -> String
 escape []          = []
 escape ('"' : ss)  = '\\' : '"' : escape ss
 escape (s   : ss)  = s : escape ss
+
+-- | Invoke Graphviz and Imagemagick to display graph on screen.
+display :: (Graph vertex -> String) -> Graph vertex -> IO ()
+display sh g = do 
+  writeFile "/tmp/test.dot" (sh g)
+  runCommand $ "cat /tmp/test.dot | dot -Tpng | display -"
+  return ()

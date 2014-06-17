@@ -57,8 +57,9 @@ getRedHeaders nest
   where vtyps = assocs . vertexType $ nest 
         i2v   = (getVertex nest) . fst
 
-isRedHead RedHead = True
-isRedHead _       = False
+isRedHead RedHead  = True
+isRedHead SelfHead = True
+isRedHead _        = False
 
 -- Implementation of Havlaks algorithm.
 

@@ -7,7 +7,7 @@ Cabal-Version:  >= 1.10
 
 library
   Build-Depends:     base >= 4 && < 5, monads-tf, union-find, 
-                     containers, array
+                     containers, array, process
   exposed-modules:   Data.Graph.Libgraph  
   other-modules:     Data.Graph.Libgraph.DepthFirst,
                      Data.Graph.Libgraph.Dominance,
