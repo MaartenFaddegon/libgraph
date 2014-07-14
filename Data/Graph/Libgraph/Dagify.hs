@@ -5,20 +5,20 @@ import Data.Graph.Libgraph.DepthFirst
 import Data.List(nub)
 
 dagify :: Ord vertex => ([vertex]->vertex) -> Graph vertex -> Graph vertex
-dagify collapse = (rmIrreducible collapse) . rmReducible
+dagify merge = (collapse merge) . remove
 
-rmReducible :: Ord vertex => Graph vertex -> Graph vertex
-rmReducible g = filterArc (\a@(Arc _ tgt) -> not $ isBackEdge a && isRedHead tgt) g
+remove :: Ord v => Graph v -> Graph v
+remove g = filterArc (\a@(Arc _ tgt) -> not $ isBackEdge a && isRedHead tgt) g
   where isRedHead  h = h `elem` getRedHeaders (getCycleNest g)
         isBackEdge a = getEdgetype (getDfs g) a == BackEdge
 
-rmIrreducible :: Ord vertex => ([vertex]->vertex) -> Graph vertex -> Graph vertex
-rmIrreducible collapse g = foldl collapse' g ics
+collapse :: Ord v => ([v]->v) -> Graph v -> Graph v
+collapse merge g = foldl merge' g ics
   where (CycleTree _ ts) = getCycles (getCycleNest g)
         ics              = filter (\c -> case c of Irreducible _ -> True; _ -> False) ts
-        collapse' g (Irreducible cts)
+        merge' g (Irreducible cts)
           = let ws = (map (\(CycleTree v []) -> v) cts)
-                v  = (collapse ws)
+                v  = (merge ws)
             in rewire g ws v
 
 rewire :: Eq vertex => Graph vertex -> [vertex] -> vertex -> Graph vertex

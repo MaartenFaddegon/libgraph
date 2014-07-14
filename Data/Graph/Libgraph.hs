@@ -21,6 +21,7 @@ module Data.Graph.Libgraph
 , getCycles
 , getRedHeaders
 , dagify
+, findFaulty
 , showWith
 , escape
 , display
@@ -31,3 +32,4 @@ import Data.Graph.Libgraph.Dominance
 import Data.Graph.Libgraph.Cycles
 import Data.Graph.Libgraph.Dagify
 import Data.Graph.Libgraph.Dot
+import Data.Graph.Libgraph.AlgoDebug
