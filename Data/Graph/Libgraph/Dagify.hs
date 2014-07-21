@@ -15,7 +15,9 @@ remove g = filterArc (\a -> not $ isBackEdge a && hasRedHead a) g
 collapse :: Ord v => ([v]->v) -> Graph v -> Graph v
 collapse merge g = foldl collapseCycle g ics
   where (CycleTree _ ts) = getCycles (getCycleNest g)
-        ics              = filter (\c -> case c of Irreducible _ -> True; _ -> False) ts
+        ics              = filter (\c -> case c of 
+                                Irreducible _ -> True
+                                _             -> False) ts
         collapseCycle g (Irreducible cts)
           = let ws = (verticesInCycle cts)
                 v  = (merge ws)

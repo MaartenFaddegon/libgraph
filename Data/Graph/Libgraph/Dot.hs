@@ -32,7 +32,8 @@ vName i = "v" ++ show i
 
 escape :: String -> String
 escape []          = []
-escape ('"' : ss)  = '\\' : '"' : escape ss
+escape ('"' : ss)  = '\\' : '"'   : escape ss
+escape ('\\' : ss)  = '\\' : '\\' : escape ss
 escape (s   : ss)  = s : escape ss
 
 -- | Invoke Graphviz and Imagemagick to display graph on screen.
