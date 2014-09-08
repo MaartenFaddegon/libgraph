@@ -25,6 +25,8 @@ module Data.Graph.Libgraph
 , showWith
 , escape
 , display
+, collapse
+, remove
 ) where
 import Data.Graph.Libgraph.Core
 import Data.Graph.Libgraph.DepthFirst

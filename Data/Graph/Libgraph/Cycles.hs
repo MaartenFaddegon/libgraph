@@ -69,10 +69,10 @@ data VertexType = NonHead | SelfHead | RedHead | IrredHead
   deriving Show
 
 data CycleNest vertex = CycleNest
-  { graph        :: Graph Int
+  { graph        :: Graph Int ()
   , getVertex    :: Int -> vertex
   , n            :: Int
-  , dfs          :: Dfs Int
+  , dfs          :: Dfs Int ()
   , backPreds    :: [[Int]]
   , nonBackPreds :: Array Int [Int]
   , vertexType   :: Array Int VertexType
@@ -84,7 +84,7 @@ data CycleNest vertex = CycleNest
 
 
 -- Part a and b of Havlak's algorithm
-state0 :: Ord vertex => Graph vertex -> CycleNest vertex
+state0 :: Ord vertex => Graph vertex arc -> CycleNest vertex
 state0 g = s0
   where ps   = map (\w -> partition (isAncestor (dfs s0) w) (preds (graph s0) w)) [1..n s0]
         bps  = map fst ps
@@ -104,7 +104,7 @@ state0 g = s0
           , uf           = UF.fromList [1..n s0]
           }
 
-getCycleNest :: Ord vertex => Graph vertex -> CycleNest vertex
+getCycleNest :: Ord vertex => Graph vertex arc -> CycleNest vertex
 getCycleNest g = execState (analyse . reverse $ [1..n s0]) s0
   where s0 = state0 g
 
@@ -175,11 +175,12 @@ chase' w y = do
 
 -- Some helper functions
 
-dfsGraph :: Ord vertex => Graph vertex -> (Graph Int, Int -> vertex)
-dfsGraph g = (mapGraph v2i g, i2v)
+dfsGraph :: Ord vertex => Graph vertex arc -> (Graph Int (), Int -> vertex)
+dfsGraph g = (mapGraph v2i g', i2v)
   where preorder = getPreorder (getDfs g)
-        i2v i = lookup' i (zip [1..] preorder)
-        v2i v = lookup' v (zip preorder [1..])
+        i2v i = lookup' i (zip [1..] preorder) "Libraph.dfsGraph: lookup failed"
+        v2i v = lookup' v (zip preorder [1..]) "Libraph.dfsGraph: lookup failed"
+        g' = unitGraph g
 
 modifyVertexType :: (Int,VertexType) -> S vertex ()
 modifyVertexType vtyp = do

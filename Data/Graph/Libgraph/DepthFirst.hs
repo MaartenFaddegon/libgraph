@@ -12,52 +12,55 @@ import Data.Graph.Libgraph.Dot
 import Control.Monad.State
 import Data.List
 
-data Dfs vertex = Dfs { num       :: [(vertex,Int)]
-                      , lastVisit :: [(vertex,Int)] 
-                      , spanning  :: [Arc vertex]
-                      , graph     :: Graph vertex
-                      }
+data Dfs vertex arc
+  = Dfs { num       :: [(vertex,Int)]
+        , lastVisit :: [(vertex,Int)] 
+        , spanning  :: [SimpleArc vertex]
+        , graph     :: Graph vertex arc
+        }
 
 data EdgeType = TreeEdge | BackEdge | FwdEdge | CrossEdge
   deriving Eq
 
 -- | Is first vertex a (recursive) parent of second vertex?
-isAncestor :: Eq vertex => Dfs vertex -> vertex -> vertex -> Bool
+isAncestor :: (Eq vertex, Show vertex)
+           => Dfs vertex arc -> vertex -> vertex -> Bool
 isAncestor d w v = (n_w <= n_v && n_v <= l_w)
-  where n_v    = lookup' v (num d)
-        n_w    = lookup' w (num d)
-        l_w    = lookup' w (lastVisit d)
+  where n_v    = lookup' v (num d) $ "LibGraph.isAncestor: lookup dfs number failed " ++ show v
+        n_w    = lookup' w (num d) $ "LibGraph.isAncestor: lookup dfs number failed"
+        l_w    = lookup' w (lastVisit d) $ "LibGraph.isAncestor: lookup dfs lasVisit-number failed"
 
 -- | The 'EdgeType' of an 'Arc'.
-getEdgetype :: Eq vertex => Dfs vertex -> Arc vertex -> EdgeType
-getEdgetype d a@(Arc v w)
-  | a `elem` (spanning d) = TreeEdge
-  | w `isAnc` v           = BackEdge
-  | v `isAnc` w           = FwdEdge
-  | otherwise             = CrossEdge
+getEdgetype :: (Eq vertex, Show vertex) => Dfs vertex arc -> Arc vertex arc -> EdgeType
+getEdgetype d (Arc v w _)
+  | (v-->w) `elem` (spanning d) = TreeEdge
+  | w `isAnc` v                 = BackEdge
+  | v `isAnc` w                 = FwdEdge
+  | otherwise                   = CrossEdge
   where isAnc = isAncestor d
 
 -- | Get list of vertices in the order they were visited by the depth-first search.
-getPreorder :: Dfs vertex -> [vertex]
+getPreorder :: Dfs vertex arc -> [vertex]
 getPreorder d = map fst (reverse . num $ d)
 
 -- | Get list of vertices in the order they were last visited by the depth-first search.
-getPostorder :: Dfs vertex -> [vertex]
+getPostorder :: Dfs vertex arc -> [vertex]
 getPostorder d = map fst (reverse . lastVisit $ d)
 
 data Succs vertex = Succs vertex [vertex]
 
-data DfsState vertex = DfsState { graph'     :: Graph vertex
-                                , spanning'  :: [Arc vertex]
-                                , stack      :: [Succs vertex]
-                                , seen       :: [vertex]
-                                , time       :: Int
-                                , num'       :: [(vertex,Int)]
-                                , lastVisit' :: [(vertex,Int)]
-                                }
+data DfsState vertex arc
+  = DfsState { graph'     :: Graph vertex arc
+             , spanning'  :: [SimpleArc vertex]
+             , stack      :: [Succs vertex]
+             , seen       :: [vertex]
+             , time       :: Int
+             , num'       :: [(vertex,Int)]
+             , lastVisit' :: [(vertex,Int)]
+             }
 
 -- | Walk graph in depth-first order and number the vertices.
-getDfs :: Eq vertex => Graph vertex -> Dfs vertex
+getDfs :: Eq vertex => Graph vertex arc -> Dfs vertex arc
 getDfs g = Dfs (num' finalState) (lastVisit' finalState) (spanning' finalState) g
   where state0 = DfsState { graph'     = g
                           , spanning'  = []
@@ -69,7 +72,7 @@ getDfs g = Dfs (num' finalState) (lastVisit' finalState) (spanning' finalState) 
                           }
         finalState = execState (visit $ root g) state0
 
-visit :: Eq vertex => vertex -> State (DfsState vertex) ()
+visit :: Eq vertex => vertex -> State (DfsState vertex arc) ()
 visit v = do see v
              pushSuccs v
              s <- gets stack
@@ -78,16 +81,16 @@ visit v = do see v
                                           visit w
                          Nothing    -> return ()
 
-addToSpanning :: vertex -> vertex -> State (DfsState vertex) ()
+addToSpanning :: vertex -> vertex -> State (DfsState vertex arc) ()
 addToSpanning v w 
   = modify $ \s -> s { spanning' = v --> w : (spanning' s) }
 
-pushSuccs :: Eq vertex => vertex -> State (DfsState vertex) ()
+pushSuccs :: Eq vertex => vertex -> State (DfsState vertex arc) ()
 pushSuccs v = do g  <- gets graph'
                  vs <- gets seen
                  modify $ \s -> s { stack = Succs v (succs g v) : (stack s) }
 
-pop :: Eq vertex => State (DfsState vertex) (Maybe (vertex,vertex))
+pop :: Eq vertex => State (DfsState vertex arc) (Maybe (vertex,vertex))
 pop = do s <- gets stack
          case s of []                  -> return Nothing
                    (Succs v []:ss)     -> do modify $ \s -> s { stack = ss }
@@ -100,19 +103,20 @@ pop = do s <- gets stack
                              then pop 
                              else do return $ Just (v,c)
 
-visitedAllChildren :: Eq vertex => vertex -> State (DfsState vertex) ()
+visitedAllChildren :: Eq vertex => vertex -> State (DfsState vertex arc) ()
 visitedAllChildren v = modify $ \s -> s { lastVisit' = (v, time s) : lastVisit' s }
 
-see :: vertex -> State (DfsState vertex) ()
+see :: vertex -> State (DfsState vertex arc) ()
 see v = modify $ \s -> s { seen = v : seen s
                          , num' = (v, time s + 1) : num' s
                          , time = time s + 1
                          }
 
-instance (Eq vertex,Show vertex) => Show (Dfs vertex) where
+instance (Eq vertex,Show vertex) => Show (Dfs vertex arc) where
   show d = showWith (graph d) showVertex showArc
-    where showVertex v = show v ++ show (lookup' v (num d), lookup' v (lastVisit d))
-          showArc    = show . (getEdgetype d)
+    where showVertex v = show v ++ show (lkup v (num d), lkup v (lastVisit d))
+          showArc      = show . (getEdgetype d)
+          lkup v ds    = lookup' v ds "Libgraph.show: lookup dfs number failed"
 
 instance Show EdgeType where
   show TreeEdge  = "tree edge"
