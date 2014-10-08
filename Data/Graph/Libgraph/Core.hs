@@ -64,6 +64,9 @@ isPred g w v = w `elem` preds g v
 mapGraph :: (a -> b) -> Graph a c -> Graph b c
 mapGraph f (Graph r vs as) = Graph (f r) (map f vs) (mapArcsV f as)
 
+mapArcs :: (a -> b) -> Graph c a -> Graph c b
+mapArcs f (Graph r vs as) = Graph r vs (map (mapArc f) as)
+
 mapArcsV :: (a -> b) -> [Arc a c] -> [Arc b c]
 mapArcsV = map . mapArcV
 

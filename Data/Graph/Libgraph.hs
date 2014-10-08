@@ -7,6 +7,7 @@ module Data.Graph.Libgraph
 , isSucc
 , isPred
 , mapGraph
+, mapArcs
 , Dfs
 , EdgeType(..)
 , getDfs
