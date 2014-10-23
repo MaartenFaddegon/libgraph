@@ -23,6 +23,8 @@ module Data.Graph.Libgraph
 , getRedHeaders
 , dagify
 , findFaulty
+, findFaulty_dag
+, Judgement(..)
 , showWith
 , escape
 , display

@@ -1,10 +1,15 @@
 module Data.Graph.Libgraph.AlgoDebug where
 import Data.Graph.Libgraph.Core
 import Data.Graph.Libgraph.Dagify(collapse,remove)
+import Prelude hiding (Right)
 
-findFaulty_dag :: (Ord v, Eq a, Show v) => (v -> Bool) -> Graph v a -> [v]
-findFaulty_dag isWrong g = filter isFaulty (vertices g)
-  where isFaulty v = isWrong v && (null $ (filter isWrong) (succs g v))
+data Judgement = Right | Wrong | Unassessed deriving (Eq,Show,Ord)
 
-findFaulty :: (Ord v, Eq a, Show v) => (v -> Bool) -> ([v]->v) -> Graph v a -> [v]
+findFaulty_dag :: (Ord v, Eq a, Show v) => (v -> Judgement) -> Graph v a -> [v]
+findFaulty_dag judge g = filter isFaulty (vertices g)
+  where isFaulty v =  (judge v == Wrong)
+                   && (null $ filter ((/=Right) . judge) (succs g v))
+
+findFaulty :: (Ord v, Eq a, Show v) 
+           => (v -> Judgement) -> ([v]->v) -> Graph v a -> [v]
 findFaulty isWrong merge = (findFaulty_dag isWrong) . (collapse merge) . remove
