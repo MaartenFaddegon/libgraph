@@ -5,7 +5,7 @@ import Data.Graph.Libgraph.DepthFirst
 import Data.List(nub)
 
 dagify :: (Ord v, Eq a, Show v)  => ([v]->v) -> Graph v a -> Graph v a
-dagify merge = (collapse merge) . remove
+dagify merge = {-# SCC "dagify" #-} (collapse merge) . remove
 
 remove :: (Ord v, Show v) => Graph v a -> Graph v a
 remove g = filterArc (\a -> not $ isBackEdge a && hasRedHead a) g

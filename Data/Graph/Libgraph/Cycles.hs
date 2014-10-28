@@ -21,7 +21,7 @@ data CycleTree vertex = CycleTree vertex [CycleTree vertex]
                       deriving Show
 
 getCycles :: Ord vertex => CycleNest vertex -> CycleTree vertex
-getCycles nest = cycleTree nest (children nest) 1
+getCycles nest = {-# SCC "getCycles" #-} cycleTree nest (children nest) 1
 
 cycleTree :: CycleNest vertex -> Array Int [Int] -> Int -> CycleTree vertex
 cycleTree nest cs x
