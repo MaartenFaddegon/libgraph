@@ -1,7 +1,14 @@
 Name:           libgraph
 Version:        1.3
+Home-page:      http://maartenfaddegon.nl
+Synopsis:       Store and manipulate data in a graph.
+Description:    A graph type, analysis of graphs and manipulation of graphs.
 License:        BSD3
+license-file:   LICENSE
 Author:         Maarten Faddegon
+Maintainer:     libgraph@maartenfaddegon.nl
+Copyright:      (c) 2014 Maarten Faddegon
+Category:       Algorithms, Data Structures
 Build-Type:     Simple
 Cabal-Version:  >= 1.10
 
