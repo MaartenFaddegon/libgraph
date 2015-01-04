@@ -12,7 +12,7 @@ remove g = filterArc (\a -> not $ isBackEdge a && hasRedHead a) g
   where isBackEdge a = getEdgetype (getDfs g) a == BackEdge
         hasRedHead (Arc _ h _) = h `elem` getRedHeaders (getCycleNest g)
 
-collapse :: (Ord v,Eq a) => ([v]->v) -> Graph v a -> Graph v a
+collapse :: (Show v, Ord v,Eq a) => ([v]->v) -> Graph v a -> Graph v a
 collapse merge g = foldl collapseCycle g ics
   where (CycleTree _ ts) = getCycles (getCycleNest g)
         ics              = filter (\c -> case c of 

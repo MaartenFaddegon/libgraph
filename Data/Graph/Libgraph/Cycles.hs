@@ -84,9 +84,9 @@ data CycleNest vertex = CycleNest
 
 
 -- Part a and b of Havlak's algorithm
-state0 :: Ord vertex => Graph vertex arc -> CycleNest vertex
+state0 :: (Show vertex, Ord vertex) => Graph vertex arc -> CycleNest vertex
 state0 g = s0
-  where ps   = map (\w -> partition (isAncestor (dfs s0) w) (preds (graph s0) w)) [1..n s0]
+  where ps   = map (\w -> partition (isAncestor' (dfs s0) w) (preds (graph s0) w)) [1..n s0]
         bps  = map fst ps
         nbps = map snd ps
         dfsg = dfsGraph g
@@ -104,7 +104,11 @@ state0 g = s0
           , uf           = UF.fromList [1..n s0]
           }
 
-getCycleNest :: Ord vertex => Graph vertex arc -> CycleNest vertex
+isAncestor' d v w = case isAncestor d v w of 
+  Just b  -> b
+  Nothing -> error "Havlak's algorithm only works for connected graphs!"
+
+getCycleNest :: (Show vertex, Ord vertex) => Graph vertex arc -> CycleNest vertex
 getCycleNest g = execState (analyse . reverse $ [1..n s0]) s0
   where s0 = state0 g
 
@@ -164,7 +168,7 @@ chase' w y = do
   y' <- uf_find y
   d  <- gets dfs
   p  <- gets body
-  if not $ isAncestor d w y' then do
+  if not $ isAncestor' d w y' then do
     modifyVertexType (w,IrredHead)
     y' `addToNonBackPredsOf` w
   else if not (y' `elem` p) && y' /= w then do
@@ -175,11 +179,13 @@ chase' w y = do
 
 -- Some helper functions
 
-dfsGraph :: Ord vertex => Graph vertex arc -> (Graph Int (), Int -> vertex)
+dfsGraph :: (Show vertex, Ord vertex) => Graph vertex arc -> (Graph Int (), Int -> vertex)
 dfsGraph g = (mapGraph v2i g', i2v)
   where preorder = getPreorder (getDfs g)
-        i2v i = lookup' i (zip [1..] preorder) "Libraph.dfsGraph: lookup failed"
-        v2i v = lookup' v (zip preorder [1..]) "Libraph.dfsGraph: lookup failed"
+        i2v i = lookup' i (zip [1..] preorder) 
+              $ "Libraph.dfsGraph: unreachable from root " ++ show i
+        v2i v = lookup' v (zip preorder [1..])
+              $ "Libraph.dfsGraph: unreachable from root " ++ show v
         g' = unitGraph g
 
 modifyVertexType :: (Int,VertexType) -> S vertex ()

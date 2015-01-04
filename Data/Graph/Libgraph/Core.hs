@@ -82,6 +82,10 @@ filterArc p (Graph r vs as) = Graph r vs (filter p as)
 --------------------------------------------------------------------------------
 -- Some other helper functions
 
+nothingIsFalse :: Maybe Bool -> Bool
+nothingIsFalse (Just b) = b
+nothingIsFalse Nothing  = False
+
 lookup' :: Eq a => a -> [(a, b)] -> String -> b
 lookup' x ys msg = case lookup x ys of
   Nothing -> error msg

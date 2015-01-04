@@ -23,12 +23,14 @@ data EdgeType = TreeEdge | BackEdge | FwdEdge | CrossEdge
   deriving Eq
 
 -- | Is first vertex a (recursive) parent of second vertex?
+--   May fail when one of the vertices is unreachable from the root.
 isAncestor :: (Eq vertex, Show vertex)
-           => Dfs vertex arc -> vertex -> vertex -> Bool
-isAncestor d w v = (n_w <= n_v && n_v <= l_w)
-  where n_v    = lookup' v (num d) $ "LibGraph.isAncestor: lookup dfs number failed " ++ show v
-        n_w    = lookup' w (num d) $ "LibGraph.isAncestor: lookup dfs number failed"
-        l_w    = lookup' w (lastVisit d) $ "LibGraph.isAncestor: lookup dfs lasVisit-number failed"
+           => Dfs vertex arc -> vertex -> vertex -> Maybe Bool
+isAncestor d w v = do
+  n_v <- lookup v (num d)
+  n_w <- lookup w (num d)
+  l_w <- lookup w (lastVisit d)
+  return (n_w <= n_v && n_v <= l_w)
 
 -- | The 'EdgeType' of an 'Arc'.
 getEdgetype :: (Eq vertex, Show vertex) => Dfs vertex arc -> Arc vertex arc -> EdgeType
@@ -37,7 +39,7 @@ getEdgetype d (Arc v w _)
   | w `isAnc` v                 = BackEdge
   | v `isAnc` w                 = FwdEdge
   | otherwise                   = CrossEdge
-  where isAnc = isAncestor d
+  where isAnc x y = nothingIsFalse (isAncestor d x y)
 
 -- | Get list of vertices in the order they were visited by the depth-first search.
 getPreorder :: Dfs vertex arc -> [vertex]
