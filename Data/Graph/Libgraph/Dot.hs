@@ -10,13 +10,17 @@ import System.Process(runCommand)
 showWith :: Eq vertex => Graph vertex arc -> (vertex->String) -> (Arc vertex arc->String) -> String
 showWith g vLabel aLabel
   = "diGraph G {\n"
-  ++ "root [style=invis label=\"\"]\n"
-  ++ foldl (\s v -> (showVertex vLabel v) ++ s) "" vs
-  ++ "root -> " ++ vName r ++ "\n"
+  ++ vName r ++ "[shape=none label=\".\"]\n"
+  ++ foldl (\s v -> show1 v ++ s) "" vs
   ++ foldl (\s a -> (showArc vs aLabel a) ++ s) "" (arcs g)
   ++ "}\n"
   where vs = zip (vertices g) [0..]
         r  = lookup' (root g) vs "LibGraph.showWith: lookup root in vs failed"
+        isRoot (v,_) = v == root g
+
+        show1 v
+          | isRoot v  = vName r ++ "[shape=none label=\".\"]\n"
+          | otherwise = (showVertex vLabel v)
 
 showVertex :: (vertex->String) -> (vertex,Int) -> String
 showVertex vLabel (v,i) 
