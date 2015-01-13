@@ -34,5 +34,5 @@ dom ds = if sets ds' == sets ds then ds else dom ds'
 
 instance (Eq vertex,Show vertex) => Show (Domsets vertex arc) where
   show d = showWith (graph d) showVertex showArc
-    where showVertex v = show v ++ show (getDominators v d)
+    where showVertex v = (show v ++ show (getDominators v d),"")
           showArc _    = ""

@@ -7,7 +7,8 @@ import Data.Graph.Libgraph.Core
 import System.Process(runCommand)
 
 -- | Convert Graph to String with functions to show vertices and arcs.
-showWith :: Eq vertex => Graph vertex arc -> (vertex->String) -> (Arc vertex arc->String) -> String
+showWith :: Eq vertex => Graph vertex arc -> (vertex->(String,String)) 
+                          -> (Arc vertex arc->String) -> String
 showWith g vLabel aLabel
   = "diGraph G {\n"
   ++ vName r ++ "[shape=none label=\".\"]\n"
@@ -22,9 +23,10 @@ showWith g vLabel aLabel
           | isRoot v  = vName r ++ "[shape=none label=\".\"]\n"
           | otherwise = (showVertex vLabel v)
 
-showVertex :: (vertex->String) -> (vertex,Int) -> String
-showVertex vLabel (v,i) 
-  = vName i ++ " [label=\"" ++ (escape . vLabel) v ++ "\"]\n"
+showVertex :: (vertex->(String,String)) -> (vertex,Int) -> String
+showVertex vLabel (v,i) =
+  let (lbl,extra) = vLabel v
+  in  vName i ++ " [label=\"" ++ escape lbl ++ "\"" ++ extra ++ "]\n"
 
 showArc :: Eq vertex => [(vertex,Int)] -> (Arc vertex arc->String) -> (Arc vertex arc) -> String
 showArc vs aLabel a

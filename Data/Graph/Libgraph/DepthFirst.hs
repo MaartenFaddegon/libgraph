@@ -116,7 +116,7 @@ see v = modify $ \s -> s { seen = v : seen s
 
 instance (Eq vertex,Show vertex) => Show (Dfs vertex arc) where
   show d = showWith (graph d) showVertex showArc
-    where showVertex v = show v ++ show (lkup v (num d), lkup v (lastVisit d))
+    where showVertex v = (show v ++ show (lkup v (num d), lkup v (lastVisit d)),"")
           showArc      = show . (getEdgetype d)
           lkup v ds    = lookup' v ds "Libgraph.show: lookup dfs number failed"
 
