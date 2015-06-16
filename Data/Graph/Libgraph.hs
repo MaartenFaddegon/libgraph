@@ -30,6 +30,9 @@ module Data.Graph.Libgraph
 , display
 , collapse
 , remove
+, depth
+, avgDepth
+, maxDepth
 ) where
 import Data.Graph.Libgraph.Core
 import Data.Graph.Libgraph.DepthFirst

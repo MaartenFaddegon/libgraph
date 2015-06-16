@@ -26,7 +26,8 @@ showWith g vLabel aLabel
 showVertex :: (vertex->(String,String)) -> (vertex,Int) -> String
 showVertex vLabel (v,i) =
   let (lbl,extra) = vLabel v
-  in  vName i ++ " [label=\"" ++ escape lbl ++ "\"" ++ extra ++ "]\n"
+  in  vName i ++ " [label=" ++ lbl ++ "" ++ extra ++ "]\n"
+  -- in  vName i ++ " [label=\"" ++ escape lbl ++ "\"" ++ extra ++ "]\n"
 
 showArc :: Eq vertex => [(vertex,Int)] -> (Arc vertex arc->String) -> (Arc vertex arc) -> String
 showArc vs aLabel a

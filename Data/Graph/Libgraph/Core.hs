@@ -102,3 +102,23 @@ sndList = snd . unzip
 
 fstList :: [(a,b)] -> [a]
 fstList = fst . unzip
+
+---
+
+depth :: Eq v => Graph v a -> v -> Maybe Int
+depth g v
+  | v == root g = Just 0
+  | otherwise   = case preds g v of
+      []    -> Nothing
+      (w:_) -> do d <- depth g w
+                  return (d+1)
+
+maxDepth :: Eq v => Graph v a -> Maybe Int
+maxDepth g = do
+  ds <- mapM (depth g) (vertices g)
+  return (maximum ds)
+
+avgDepth :: Eq v => Graph v a -> Maybe Int
+avgDepth g = do
+  ds <- mapM (depth g) (vertices g)
+  return $ (sum ds) `div` (length ds)
