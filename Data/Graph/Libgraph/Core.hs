@@ -105,6 +105,17 @@ fstList = fst . unzip
 
 ---
 
+treeDepth :: Eq v => Graph v a -> Int
+treeDepth g = treeDepth' g [] (root g)
+
+treeDepth' :: Eq v => Graph v a -> [v] -> v -> Int
+treeDepth' g seen v
+  | v `elem` seen = error "treeDepth: Not a tree (cycle detected!)"
+  | otherwise     = case (succs g v) of
+     [] -> 1
+     cs -> maximum . map (treeDepth' g (v:seen)) $ cs
+
+{-
 depth :: Eq v => Graph v a -> v -> Maybe Int
 depth g v
   | v == root g = Just 0
@@ -122,3 +133,4 @@ avgDepth :: Eq v => Graph v a -> Maybe Int
 avgDepth g = do
   ds <- mapM (depth g) (vertices g)
   return $ (sum ds) `div` (length ds)
+-}
