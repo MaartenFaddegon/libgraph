@@ -1,7 +1,8 @@
 module Data.Graph.Libgraph.Core where
 import Data.Maybe
 import Data.List
-import Debug.Trace(traceStack)
+import Data.Map.Strict(Map)
+import qualified Data.Map.Strict as Map
 
 --------------------------------------------------------------------------------
 -- External representation of graphs
@@ -45,6 +46,18 @@ unitGraph g = g { arcs = map unitArc (arcs g) }
 -- | Direct successors of a vertex.
 succs :: Eq vertex => Graph vertex arc -> vertex -> [vertex]
 succs g v = map target $ filter ((== v) . source) (arcs g)
+
+
+succCache :: Ord vertex => Graph vertex arc -> (vertex -> [vertex])
+succCache g = \v -> case Map.lookup v m of 
+                        Nothing -> []
+                        (Just ws) -> ws
+
+  where m = foldl (\m' (Arc v w _) -> insertCon v w m') Map.empty (arcs g)
+  
+
+insertCon :: Ord k => k -> a -> Map k [a] -> Map k [a]
+insertCon i x = Map.insertWith (\[x] xs->x:xs) i [x]
 
 -- | Direct predecessors of a vertex.
 preds :: Eq vertex => Graph vertex arc -> vertex -> [vertex]
@@ -105,32 +118,13 @@ fstList = fst . unzip
 
 ---
 
-treeDepth :: Eq v => Graph v a -> Int
-treeDepth g = treeDepth' g [] (root g)
+treeDepth :: Ord v => Graph v a -> Int
+treeDepth g = treeDepth' [] (root g)
+  where suc = succCache g
 
-treeDepth' :: Eq v => Graph v a -> [v] -> v -> Int
-treeDepth' g seen v
-  | v `elem` seen = error "treeDepth: Not a tree (cycle detected!)"
-  | otherwise     = case (succs g v) of
-     [] -> 1
-     cs -> maximum . map (treeDepth' g (v:seen)) $ cs
+        treeDepth' seen v
+          | v `elem` seen = 1
+          | otherwise     = case suc v of
+             [] -> 0
+             cs -> 1 + (maximum . map (treeDepth' (v:seen)) $ cs)
 
-{-
-depth :: Eq v => Graph v a -> v -> Maybe Int
-depth g v
-  | v == root g = Just 0
-  | otherwise   = case preds g v of
-      []    -> Nothing
-      (w:_) -> do d <- depth g w
-                  return (d+1)
-
-maxDepth :: Eq v => Graph v a -> Maybe Int
-maxDepth g = do
-  ds <- mapM (depth g) (vertices g)
-  return (maximum ds)
-
-avgDepth :: Eq v => Graph v a -> Maybe Int
-avgDepth g = do
-  ds <- mapM (depth g) (vertices g)
-  return $ (sum ds) `div` (length ds)
--}
