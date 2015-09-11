@@ -3,7 +3,7 @@ import Data.Graph.Libgraph.Core
 import Data.Graph.Libgraph.Dagify(collapse,remove)
 import Prelude hiding (Right)
 
-data Judgement = Right | Wrong | Unassessed deriving (Eq,Show,Ord)
+data Judgement = Right | Wrong | Unassessed | Assisted String deriving (Eq,Show,Ord)
 
 findFaulty_dag :: (Ord v, Eq a, Show v) => (v -> Judgement) -> Graph v a -> [v]
 findFaulty_dag judge g = filter isFaulty (vertices g)
