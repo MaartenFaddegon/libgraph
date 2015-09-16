@@ -13,3 +13,18 @@ findFaulty_dag judge g = filter isFaulty (vertices g)
 findFaulty :: (Ord v, Eq a, Show v) 
            => (v -> Judgement) -> ([v]->v) -> Graph v a -> [v]
 findFaulty isWrong merge = (findFaulty_dag isWrong) . (collapse merge) . remove
+
+
+next_step :: Eq v => Graph v a -> (v -> Judgement) -> v -> v
+next_step tree j v = case j v of
+  Unassessed -> v
+  Right      -> case preds tree v of
+                  []    -> v
+                  (w:_) -> next_step tree j w
+  Wrong      -> case filter (\w -> j w == Unassessed) (succs tree v) of
+                  []    -> v
+                  (w:_) -> w
+
+
+
+

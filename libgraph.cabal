@@ -1,6 +1,6 @@
 Name:           libgraph
 Version:        1.6
-Homepage:      http://maartenfaddegon.nl
+Homepage:       http://maartenfaddegon.nl
 Synopsis:       Store and manipulate data in a graph.
 Description:    A graph type, analysis of graphs and manipulation of graphs.
 License:        BSD3

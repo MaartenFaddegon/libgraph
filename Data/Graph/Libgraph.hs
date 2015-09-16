@@ -24,6 +24,7 @@ module Data.Graph.Libgraph
 , dagify
 , findFaulty
 , findFaulty_dag
+, next_step
 , Judgement(..)
 , showWith
 , escape
