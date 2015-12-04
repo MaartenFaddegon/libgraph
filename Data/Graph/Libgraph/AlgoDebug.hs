@@ -27,4 +27,4 @@ next_step tree j v
                       []    -> v
                       (w:_) -> next_step tree j w
 
-  | j v == Unassessed = v
+  | otherwise = v -- j v is Unassessed or Assisted
