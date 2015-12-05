@@ -1,5 +1,5 @@
 Name:           libgraph
-Version:        1.8
+Version:        1.9
 Homepage:       http://maartenfaddegon.nl
 Synopsis:       Store and manipulate data in a graph.
 Description:    A graph type, analysis of graphs and manipulation of graphs.
