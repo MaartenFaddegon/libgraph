@@ -1,15 +1,19 @@
+-- Copyright (c) Maarten Faddegon, 2015-2016
+{-# LANGUAGE DeriveGeneric #-}
+
 module Data.Graph.Libgraph.Core where
 import Data.Maybe
 import Data.List
 import Data.Map.Strict(Map)
 import qualified Data.Map.Strict as Map
+import GHC.Generics
 
 --------------------------------------------------------------------------------
 -- External representation of graphs
 
 data Arc vertex arc 
   = Arc { source :: vertex, target :: vertex, arc :: arc}
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic)
 
 data SimpleArc vertex
   = SimpleArc { source' :: vertex, target' :: vertex }
@@ -19,7 +23,7 @@ data Graph vertex arc
   = Graph { root     :: vertex
           , vertices :: [vertex]
           , arcs     :: [Arc vertex arc]
-          }
+          } deriving Generic
 
 data SimpleGraph vertex
   = SimpleGraph { root'     :: vertex
