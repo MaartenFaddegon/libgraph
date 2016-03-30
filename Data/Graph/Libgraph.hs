@@ -25,6 +25,7 @@ module Data.Graph.Libgraph
 , findFaulty
 , findFaulty_dag
 , next_step
+, next_daq
 , Judgement(..)
 , AssistedMessage(..)
 , showWith
