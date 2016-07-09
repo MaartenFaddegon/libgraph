@@ -57,7 +57,14 @@ succCache g = \v -> case Map.lookup v m of
                         Nothing -> []
                         (Just ws) -> ws
 
-  where m = foldl (\m' (Arc v w _) -> insertCon v w m') Map.empty (arcs g)
+  where m = foldl' (\m' (Arc v w _) -> insertCon v w m') Map.empty (arcs g)
+
+predCache :: Ord vertex => Graph vertex arc -> (vertex -> [vertex])
+predCache g = \v -> case Map.lookup v m of 
+                        Nothing -> []
+                        (Just ws) -> ws
+
+  where m = foldl' (\m' (Arc v w _) -> insertCon w v m') Map.empty (arcs g)
   
 
 insertCon :: Ord k => k -> a -> Map k [a] -> Map k [a]

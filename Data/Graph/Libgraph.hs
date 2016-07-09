@@ -34,6 +34,8 @@ module Data.Graph.Libgraph
 , collapse
 , remove
 , treeDepth
+, succCache
+, predCache
 ) where
 import Data.Graph.Libgraph.Core
 import Data.Graph.Libgraph.DepthFirst
