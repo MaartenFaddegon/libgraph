@@ -20,7 +20,7 @@ showWith g vLabel aLabel
         isRoot (v,_) = v == root g
 
         show1 v
-          -- | isRoot v  = vName r ++ "[shape=none label=\".\"]\n"
+          --  | isRoot v  = vName r ++ "[shape=none label=\".\"]\n"
           | otherwise = (showVertex vLabel v)
 
 showVertex :: (vertex->(String,String)) -> (vertex,Int) -> String
