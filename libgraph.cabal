@@ -1,5 +1,5 @@
 Name:           libgraph
-Version:        1.13
+Version:        1.14
 Homepage:       http://maartenfaddegon.nl
 Synopsis:       Store and manipulate data in a graph.
 Description:    A graph type, analysis of graphs and manipulation of graphs.
@@ -7,7 +7,7 @@ License:        BSD3
 license-file:   LICENSE
 Author:         Maarten Faddegon
 Maintainer:     libgraph@maartenfaddegon.nl
-Copyright:      (c) 2014-2016 Maarten Faddegon
+Copyright:      (c) 2014-2017 Maarten Faddegon
 Category:       Algorithms, Data Structures
 Build-Type:     Simple
 Cabal-Version:  >= 1.10
@@ -15,6 +15,11 @@ Cabal-Version:  >= 1.10
 source-repository head
   type:     git
   location: https://github.com/MaartenFaddegon/libgraph.git
+
+source-repository this
+  type:     git
+  location: https://github.com/MaartenFaddegon/libgraph.git
+  tag:      1.14
 
 library
   Build-Depends:     base >= 4 && < 5, monads-tf, union-find, 
