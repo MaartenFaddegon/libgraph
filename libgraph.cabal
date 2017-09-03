@@ -16,11 +16,6 @@ source-repository head
   type:     git
   location: https://github.com/MaartenFaddegon/libgraph.git
 
-source-repository this
-  type:     git
-  location: https://github.com/MaartenFaddegon/libgraph.git
-  tag:      1.14
-
 library
   Build-Depends:     base >= 4 && < 5, monads-tf, union-find, 
                      containers, array, process
